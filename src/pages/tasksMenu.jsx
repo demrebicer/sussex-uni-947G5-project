@@ -17,7 +17,7 @@ const Tasks = () => {
   };
 
   const goBack = () => {
-    navigate(-1);
+    navigate("/");
   };
 
   return (

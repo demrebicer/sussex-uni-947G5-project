@@ -6,25 +6,28 @@ const ChessBoard = ({ queens, n }) => {
   const cols = Array.from({ length: n }, (_, i) => i);
 
   const isQueen = (row, col) => {
-    return queens.some((queen) =>
-      queen.some((pos) => pos.row === row && pos.col === col)
-    );
+    if (!queens) {
+      return false;
+    }
+
+    return queens.some((pos) => pos.row === row && pos.col === col);
   };
 
-  const cellSize = 480 / n; 
+  const cellSize = 480 / n;
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="grid" style={{ gridTemplateColumns: `repeat(${n}, ${cellSize}px)` }}>
+    <div className="flex justify-center items-center">
+      <div
+        className="grid"
+        style={{ gridTemplateColumns: `repeat(${n}, ${cellSize}px)` }}
+      >
         {rows.map((row) =>
           cols.map((col) => {
             const isBlack = (row + col) % 2 === 1;
             return (
               <div
                 key={col + row}
-                className={`relative ${
-                  isBlack ? "bg-black" : "bg-white"
-                }`}
+                className={`relative ${isBlack ? "bg-black" : "bg-white"}`}
                 style={{ width: cellSize, height: cellSize }}
               >
                 {isQueen(row, col) && (
