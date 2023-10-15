@@ -6,7 +6,7 @@
   "homepage": "https://demrebicer.github.io/sussex-uni-947G5-project-group-8",
   "scripts": {
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
+    "deploy": "gh-pages -d dist",
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
