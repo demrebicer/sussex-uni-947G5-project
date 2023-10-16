@@ -80,12 +80,13 @@ const NQueensProblem = () => {
               onChange={(e) => setN(e.target.value)}
               className="p-2 text-black text-lg border-2 rounded w-full bg-white border-gray-300"
               min="4"
-              // max="9"
+              max="12"
               placeholder="Enter n value"
             />
             <div className="ml-2">
               <Tooltip
-                content="The minimum value for a solution is 4x4. There are no solutions for values smaller than 4."
+                content="
+                The minimum solution is 4x4. No solutions below 4. Maximum can be 12. Higher numbers create millions of solutions, so we set a limit. But in theory, no limit exists."
                 placement="top"
                 showArrow={true}
                 classNames={{
