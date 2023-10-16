@@ -13,11 +13,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build Project
-      run: npm run build
-
-    - name: Run deploy
-      run: npm run deploy
+    - name: Deploy react app to github pages
+      uses: tanwanimohit/deploy-react-to-ghpages@v1.0.1
+            
