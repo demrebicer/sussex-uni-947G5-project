@@ -14,4 +14,4 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Print secret
-        run: echo "${{ secrets.ACTIONS_DEPLOY_KEY }}"
+        run: echo "${{ vars.ACTIONS_DEPLOY_KEY }}"
