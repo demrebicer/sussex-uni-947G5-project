@@ -24,17 +24,10 @@ jobs:
         git config user.name "demrebicer"
         git config user.email "demrebicer33@gmail.com"
       
-    # - name: Add SSH key
-    #   uses: webfactory/ssh-agent@v0.5.3
-    #   with:
-    #     ssh-private-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-
-    # Use a GitHub Actions secret variable in a bash shell
-    - name: Step 2 - GitHub Action if statement (true)
-      env: 
-        WHO_TO_TRUST: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-      if:  env.WHO_TO_TRUST == 'TrustNo1'
-      run: echo "I know what the secret token is!"
+    - name: Add SSH key
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ vars.ACTIONS_DEPLOY_KEY }}
         
     - name: Run deploy
       run: npm run deploy
