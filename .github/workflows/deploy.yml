@@ -28,7 +28,7 @@ jobs:
       run: echo "${{ vars.ACTIONS_DEPLOY_KEY }}"
       
     - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.5.3
+      uses: webfactory/ssh-agent@v0.8.0
       with:
         ssh-private-key: ${{ vars.ACTIONS_DEPLOY_KEY }}
         
