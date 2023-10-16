@@ -1,0 +1,17 @@
+name: Print Secret
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  print-secret:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Print secret
+        run: echo "${{ secrets.ACTIONS_DEPLOY_KEY }}"
