@@ -24,10 +24,10 @@ jobs:
         git config user.name "demrebicer"
         git config user.email "demrebicer33@gmail.com"
       
-    - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ vars.PUBLIC_KEY }}
+    # - name: Add SSH key
+    #   uses: webfactory/ssh-agent@v0.7.0
+    #   with:
+    #     ssh-private-key: ${{ vars.PUBLIC_KEY }}
 
     - name: Add SSH key 2
       uses: webfactory/ssh-agent@v0.7.0
