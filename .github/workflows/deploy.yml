@@ -23,6 +23,7 @@ jobs:
       run: |
         git config --global user.name "demrebicer"
         git config --global user.email "demrebicer33@gmail.com"
+        git remote add origin https://github.com/demrebicer/sussex-uni-947G5-project-group-8.git
 
     - name: Add SSH key
       uses: webfactory/ssh-agent@v0.7.0
