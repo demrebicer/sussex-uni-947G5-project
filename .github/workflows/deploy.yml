@@ -23,14 +23,16 @@ jobs:
       run: |
         git config user.name "demrebicer"
         git config user.email "demrebicer33@gmail.com"
-
-    - name: Print secret
-      run: echo "${{ vars.ACTIONS_DEPLOY_KEY }}"
       
     - name: Add SSH key
       uses: webfactory/ssh-agent@v0.7.0
       with:
-        ssh-private-key: ${{ vars.ACTIONS_DEPLOY_KEY }}
+        ssh-private-key: ${{ vars.PUBLIC_KEY }}
+
+    - name: Add SSH key 2
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ vars.PRIVATE_KEY }}
         
     - name: Run deploy
       run: npm run deploy
