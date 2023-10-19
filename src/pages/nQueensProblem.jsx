@@ -6,6 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { Tooltip, Button } from "@nextui-org/react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
+import { toast } from "react-hot-toast";
 
 const NQueensProblem = () => {
   const [n, setN] = useState(4);
@@ -31,14 +32,6 @@ const NQueensProblem = () => {
     navigate("/tasks");
   };
 
-  const solveNQueens = (n) => {
-    const res = [];
-    backtrack(res, n);
-    setQueens(
-      res.map((solution) => solution.map((c, r) => ({ row: r, col: c })))
-    );
-  };
-
   const backtrack = (res, n, board = [], r = 0) => {
     if (r === n) {
       res.push(board.slice());
@@ -57,9 +50,66 @@ const NQueensProblem = () => {
     }
   };
 
+  const filterSolutionsByUserQueens = (solutions, userQueens) => {
+    return solutions.filter((solution) =>
+      userQueens.every((uq) =>
+        solution.some((sq) => sq.row === uq.row && sq.col === uq.col)
+      )
+    );
+  };
+
+  const solveNQueens = (n) => {
+    const res = [];
+    backtrack(res, n);
+    const solutions = res.map((solution) =>
+      solution.map((c, r) => ({ row: r, col: c }))
+    );
+
+    setQueens(solutions);
+    const filteredSolutions = filterSolutionsByUserQueens(
+      solutions,
+      userQueens
+    );
+
+    if (filteredSolutions.length === 0) {
+      toast.error("No solutions found with the selected queens!");
+      setQueens([]);
+      setUserQueens([]);
+    } else {
+      setQueens(filteredSolutions);
+    }
+  };
+
+  const [userQueens, setUserQueens] = useState([]);
+
+  const isQueen = (row, col) => {
+    if (!calculated) {
+      return userQueens.some((pos) => pos.row === row && pos.col === col);
+    } else {
+      const currentSolution = queens[currentSolutionIndex];
+      return currentSolution && currentSolution.some((pos) => pos.row === row && pos.col === col);
+    }
+  };
+
+  const [calculated, setCalculated] = useState(false);
+
+  const addOrRemoveQueen = (row, col) => {
+    if (isQueen(row, col)) {
+      setUserQueens(
+        userQueens.filter((q) => !(q.row === row && q.col === col))
+      );
+    } else {
+      setUserQueens([...userQueens, { row, col }]);
+    }
+    setCalculated(false);
+    setQueens([]);
+  };
+
   const calculateNQueens = (n) => {
     solveNQueens(Number(n));
+    setCalculated(true);
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black relative overflow-hidden z-0">
@@ -120,7 +170,12 @@ const NQueensProblem = () => {
           </button>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center">
-          <ChessBoard queens={queens[currentSolutionIndex]} n={n} />
+        <ChessBoard
+          queens={calculated ? queens[currentSolutionIndex] : userQueens}
+          n={n}
+          addOrRemoveQueen={addOrRemoveQueen}
+          isQueen={isQueen}
+        />
           <div className="mt-4">
             {" "}
             <div className="flex items-center">

@@ -5,14 +5,16 @@ import { HashRouter } from "react-router-dom"; // Changed BrowserRouter to HashR
 import Router from "./router/router";
 
 import { NextUIProvider } from "@nextui-org/react";
+import { Toaster } from "react-hot-toast";
 
-import "./index.css"
+import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HashRouter>
       <NextUIProvider>
           <Router />
+          <Toaster />
       </NextUIProvider>
     </HashRouter>
   </React.StrictMode>

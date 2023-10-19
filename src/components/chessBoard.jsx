@@ -1,17 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { GiQueenCrown } from "react-icons/gi";
 
-const ChessBoard = ({ queens, n }) => {
+const ChessBoard = ({ queens, n, addOrRemoveQueen, isQueen }) => {
   const rows = Array.from({ length: n }, (_, i) => n - i - 1);
   const cols = Array.from({ length: n }, (_, i) => i);
-
-  const isQueen = (row, col) => {
-    if (!queens) {
-      return false;
-    }
-
-    return queens.some((pos) => pos.row === row && pos.col === col);
-  };
 
   const cellSize = 480 / n;
 
@@ -29,6 +21,7 @@ const ChessBoard = ({ queens, n }) => {
                 key={col + row}
                 className={`relative ${isBlack ? "bg-black" : "bg-white"}`}
                 style={{ width: cellSize, height: cellSize }}
+                onClick={() => addOrRemoveQueen(row, col)}
               >
                 {isQueen(row, col) && (
                   <GiQueenCrown
