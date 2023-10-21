@@ -8,10 +8,14 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
 import { toast } from "react-hot-toast";
 
+import { BsArrow90DegDown } from "react-icons/bs";
+
+
 const NQueensProblem = () => {
   const [n, setN] = useState(4);
   const [queens, setQueens] = useState([]);
   const [currentSolutionIndex, setCurrentSolutionIndex] = useState(0);
+  const [showTip, setShowTip] = useState(true);
 
   useEffect(() => {
     setCurrentSolutionIndex(0);
@@ -103,6 +107,7 @@ const NQueensProblem = () => {
     }
     setCalculated(false);
     setQueens([]);
+    setShowTip(false);
   };
 
   const calculateNQueens = (n) => {
@@ -165,17 +170,30 @@ const NQueensProblem = () => {
           <button
             onClick={() => calculateNQueens(Number(n))}
             className="px-6 py-2 border-2 border-white rounded text-white hover:bg-white hover:text-black transition duration-300"
+            style={{fontFamily: "Roboto"}}
           >
             Calculate
           </button>
+
+          
         </div>
         <div className="flex-1 flex flex-col items-center justify-center">
+        {showTip && (
+            <div className=" ml-5 mt-5">
+              <div className="flex items-center p-2 rounded-full">
+                <BsArrow90DegDown size={24} className="mr-2"/>
+                {/* //Make sure Roboto font */}
+                <p className="text-md mb-4" style={{fontFamily: "Roboto"}}>You can manually place a queen by clicking on the squares!</p>
+              </div>
+            </div>
+          )}
         <ChessBoard
           queens={calculated ? queens[currentSolutionIndex] : userQueens}
           n={n}
           addOrRemoveQueen={addOrRemoveQueen}
           isQueen={isQueen}
         />
+       
           <div className="mt-4">
             {" "}
             <div className="flex items-center">
