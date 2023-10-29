@@ -4,7 +4,7 @@ This project is created for the Advanced Computer Engineering module at the Univ
 
 ## Demo
 
-TBA
+[https://demrebicer.github.io/sussex-uni-947G5-project-group-8/](https://demrebicer.github.io/sussex-uni-947G5-project-group-8/)
 
 ## Technologies
 
@@ -25,7 +25,7 @@ npm install
 ```node
 npm run start
 ```
-The project will open at [http://localhost:3000](http://localhost:3000).
+The project will open at [http://localhost:5173/sussex-uni-947G5-project-group-8](http://localhost:5173/sussex-uni-947G5-project-group-8).
 
 ## Testing
 
