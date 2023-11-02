@@ -6,7 +6,8 @@ import { FiArrowLeft } from "react-icons/fi";
 
 const tasks = [
   { id: "nqueensproblem", name: "Task 2: N-Queens Problem" },
-  // { id: 2, name: 'Task 2: Math Challenge' },
+  { id: "polyspherepuzzle", name: 'Task 3: Polyspher Puzzle' },
+  { id: "test", name: 'Task 3: Test' },
 ];
 
 const Tasks = () => {
