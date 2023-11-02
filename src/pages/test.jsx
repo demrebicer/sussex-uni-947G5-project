@@ -422,10 +422,62 @@ function Board({ onDropPiece, highlightedSquares, setHighlightedSquares, pieces,
   );
 }
 
+let pieceIndex = 0; // Başlangıçta ilk parçayı işaret eder
+const totalRows = 5; // Toplam satır sayısı
+const totalCols = 11; // Toplam sütun sayısı
+let updatedBoardState = Array(5 * 11).fill(null);
+const transformations = [
+  [], // 1. Original position
+  ['flip'], // 2. Horizontally flipped
+  ['rotate'], // 3. Rotated 90 degrees
+  ['rotate', 'flip'], // 4. Rotated 90 degrees and flipped
+  ['rotate', 'rotate'], // 5. Rotated 180 degrees
+  ['rotate', 'rotate', 'flip'], // 6. Rotated 180 degrees and flipped
+  ['rotate', 'rotate', 'rotate'], // 7. Rotated 270 degrees
+  ['rotate', 'rotate', 'rotate', 'flip'] // 8. Rotated 270 degrees and flipped
+];
+
 function Test() {
   const [boardState, setBoardState] = useState(Array(5 * 11).fill(null));
   const [pieces, setPieces] = useState(initialPieces);
   const [highlightedSquares, setHighlightedSquares] = useState([]);
+
+  async function findSolution() {
+    //Loop every item on board if there is no null you find a solution
+    if (!boardState.includes(null)) {
+      console.log('Çözüm bulundu: Tüm parçalar yerleştirildi.');
+      return true; // Çözüm başarılı
+    }
+  
+    for (let currentPieceIndex = pieceIndex; currentPieceIndex < pieces.length; currentPieceIndex++) {
+      let piece = pieces[currentPieceIndex];
+      for (let transformation of transformations) {
+        piece = await transformPiece(piece, transformation);
+        for (let r = 0; r < totalRows; r++) {
+          for (let c = 0; c < totalCols; c++) {
+            if (canPlacePiece(updatedBoardState, piece.shape, r, c, piece.id)) {
+              updatedBoardState = placePiece(piece, r, c, updatedBoardState);
+              setBoardState(updatedBoardState);
+              await new Promise(resolve => setTimeout(resolve, 100));
+
+              pieceIndex++;
+              if (await findSolution()) {
+                return true; // Çözüm bulundu, rekürsif olarak dön
+              }
+              // Çözüm bulunamadı, yerleştirme geri alınıyor
+              updatedBoardState = removePiece(piece, updatedBoardState);
+              setBoardState(updatedBoardState);
+              pieceIndex--;
+
+            }
+          }
+        }
+      }
+    }
+  
+    console.log('Bu konfigürasyonda çözüm bulunamadı, bir önceki adıma dönülüyor...');
+    return false; // Mevcut konfigürasyonda çözüm bulunamadı, backtracking
+  }
 
   function canPlacePiece(internalBoardState, itemShape, targetRow, targetCol, itemId) {
     return itemShape.every((cell) => {
@@ -445,6 +497,42 @@ function Test() {
       return true;
     });
   }
+
+  const removePiece = (piece, currentBoardState) => {
+    //Loop all items in board state and if pieace.id == item then set item to null
+    const newBoardState = currentBoardState.map((item) => (item === piece.id ? null : item));
+    handleDropPiece(piece.id, false);
+    return newBoardState;
+  };
+  
+
+  const placePiece = (piece, row, col, currentBoardState) => {
+    let offsetRow, offsetCol;
+
+    const { row: itemRow, col: itemCol } = piece.shape[0];
+    // offsetRow = itemRow;
+    // offsetCol = itemCol;
+
+    console.log(piece.shape, row, col, piece.id);
+    if (!canPlacePiece(currentBoardState, piece.shape, row , col, piece.id)) {
+      return currentBoardState;
+    }
+
+    const squaresToUpdate = piece.shape.map((cell) => {
+      const { row: cellRow, col: cellCol } = cell;
+      return (row + cellRow) * 11 + col + cellCol;
+    });
+
+    const cleanedBoardState = currentBoardState.map((pieceId) => (pieceId === piece.id ? null : pieceId));
+
+    const newBoardState = [...cleanedBoardState];
+    squaresToUpdate.forEach((squareIndex) => {
+      newBoardState[squareIndex] = piece.id;
+    });
+
+    handleDropPiece(piece.id, true);
+    return newBoardState;
+  };
 
   const handleDropPiece = (id, isOnBoard) => {
     setPieces((prev) => prev.map((piece) => (piece.id === id ? { ...piece, isOnBoard } : piece)));
@@ -599,34 +687,6 @@ function Test() {
     return piece;
   };
 
-  const placePiece = (piece, row, col, currentBoardState) => {
-    let offsetRow, offsetCol;
-
-    const { row: itemRow, col: itemCol } = piece.shape[0];
-    offsetRow = itemRow;
-    offsetCol = itemCol;
-
-    console.log(piece.shape, row - offsetRow, col - offsetCol, piece.id);
-    if (!canPlacePiece(currentBoardState, piece.shape, row - offsetRow, col - offsetCol, piece.id)) {
-      return currentBoardState;
-    }
-
-    const squaresToUpdate = piece.shape.map((cell) => {
-      const { row: cellRow, col: cellCol } = cell;
-      return (row + cellRow - offsetRow) * 11 + col + cellCol - offsetCol;
-    });
-
-    const cleanedBoardState = currentBoardState.map((pieceId) => (pieceId === piece.id ? null : pieceId));
-
-    const newBoardState = [...cleanedBoardState];
-    squaresToUpdate.forEach((squareIndex) => {
-      newBoardState[squareIndex] = piece.id;
-    });
-
-    handleDropPiece(piece.id, true);
-    return newBoardState;
-  };
-
   function generateRandomPiecesTransformations() {
     const piecesTransformations = [];
     const transformations = ['rotate', 'flip'];
@@ -749,7 +809,12 @@ function Test() {
           Hard Coded Solution
         </button>
 
-        <button className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5" onClick={() => {}}>
+        <button
+          className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
+          onClick={() => {
+            findSolution();
+          }}
+        >
           Find a Solution
         </button>
       </div>
