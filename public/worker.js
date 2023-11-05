@@ -248,21 +248,57 @@ function minNumOnes(matrix, rows, columns) {
   return [minColumn, minValue];
 }
 
-function recurse(matrix, rows, columns, solutions, partialSolution, choices) {
-  if (columns.size === 0) {
-    solutions.push(partialSolution);
-    // console.log('Solution Found');
-    // console.log(partialSolution);
+function compareArraysIgnoringNulls(arr1, arr2) {
+  // Check if both arrays have the same length
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
 
-    const temp = printSolution(choices, partialSolution);
-    self.postMessage({ type: 'SOLUTION', data: temp });
+  // Helper function to check if an array is entirely composed of null values
+  function isAllNulls(array) {
+    return array.every(element => element === null);
+  }
+
+  // If either array is entirely composed of null values, return true
+  if (isAllNulls(arr1) || isAllNulls(arr2)) {
+    return true;
+  }
+
+  // Iterate over the arrays and compare each element
+  for (let i = 0; i < arr1.length; i++) {
+    // If either element is null, skip the comparison and continue
+    if (arr1[i] === null || arr2[i] === null) {
+      continue;
+    }
+    // If both elements are numbers, check if they are equal
+    if (typeof arr1[i] === 'number' && typeof arr2[i] === 'number' && arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+function recurse(matrix, rows, columns, solutions, partialSolution, choices, fixedPieces) {
+  if (columns.size === 0) {
+    // solutions.push(partialSolution);
+    // console.log('Solution Found');
+
+    const partialSolutionFormatted = printSolution(choices, partialSolution);
+    if (compareArraysIgnoringNulls(partialSolutionFormatted, fixedPieces.boardState)) {
+      solutions.push(partialSolution);
+      console.log('Solution Found');
+      console.log(partialSolutionFormatted);
+      self.postMessage({ type: 'SOLUTION', data: partialSolutionFormatted });
+    }
 
     return;
   }
 
-  // if (solutions.length > 500) {
-  //   return;
-  // }
+  if (solutions.length > 100) {
+    return;
+  }
 
   if (!running) {
     return; // Stop running if the running flag has been set to false
@@ -295,7 +331,7 @@ function recurse(matrix, rows, columns, solutions, partialSolution, choices) {
     const newRows = new Set([...rows].filter((row) => !rowsToRemove.has(row)));
     const newColumns = new Set([...columns].filter((col) => !columnsToRemove.has(col)));
 
-    recurse(matrix, newRows, newColumns, solutions, [...partialSolution, candidateRow], choices);
+    recurse(matrix, newRows, newColumns, solutions, [...partialSolution, candidateRow], choices, fixedPieces);
   }
 }
 
@@ -328,7 +364,7 @@ function printSolution(choices, solution) {
   return solutionArr;
 }
 
-function solveDlx() {
+function solveDlx(fixedPieces) {
   const choices = createMatrix(piecesData);
   const matrix = choices.map((choice) => choice[1]);
 
@@ -336,7 +372,7 @@ function solveDlx() {
   const columns = new Set(Array.from({ length: matrix[0].length }, (_, i) => i));
 
   const solutions = [];
-  recurse(matrix, rows, columns, solutions, [], choices);
+  recurse(matrix, rows, columns, solutions, [], choices, fixedPieces);
 
   solutions.forEach((solution) => {
     printSolution(choices, solution);
@@ -351,7 +387,7 @@ self.onmessage = function (e) {
   if (e.data.command === 'START') {
     console.log('Worker started');
 
-    solveDlx();
+    solveDlx(e.data.data);
   } else if (e.data.command === 'STOP') {
     // Worker'ı durdur
     running = false;

@@ -6,6 +6,11 @@ import { LuFlipHorizontal } from 'react-icons/lu';
 import { toast } from 'react-hot-toast';
 import GridComponent from '../components/previewBoard';
 
+import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
+import Grid from 'react-virtualized/dist/commonjs/Grid';
+import 'react-virtualized/styles.css';
+
+
 export const initialPieces = [
   {
     id: 1,
@@ -443,6 +448,23 @@ function Test() {
   const [pieces, setPieces] = useState(initialPieces);
   const [highlightedSquares, setHighlightedSquares] = useState([]);
 
+  const [worker, setWorker] = useState(null);
+  const [solutions, setSolutions] = useState([]);
+
+  useEffect(() => {
+    const newWorker = new Worker('worker.js');
+    setWorker(newWorker);
+
+    newWorker.onmessage = (e) => {
+      if (e.data.type === 'SOLUTION') {
+        // console.log("Veri geldi")
+        setSolutions((prevSolutions) => [...prevSolutions, e.data.data]);
+      }
+    };
+
+    return () => newWorker.terminate();
+  }, []);
+
   async function findSolution() {
     //Loop every item on board if there is no null you find a solution
     if (!boardState.includes(null)) {
@@ -787,6 +809,14 @@ function Test() {
     setBoardState(updatedBoardState);
   };
 
+  const handleStart = () => {
+    worker.postMessage({ command: 'START', data: { boardState } });
+  };
+
+  const handleStop = () => {
+    worker.postMessage({ command: 'STOP' });
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col justify-start items-center min-h-screen bg-gray-800 py-8">
@@ -848,11 +878,14 @@ function Test() {
         <button
           className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
           onClick={() => {
-            findSolution();
+            handleStart();
           }}
         >
-          Find a Solution
+          Start Find a Solution
         </button>
+
+        <span className="text-white">{solutions.length} solutions found</span>
+
 
         <button
           className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
@@ -865,17 +898,49 @@ function Test() {
           Test
         </button>
 
-        <div>JS Version</div>
-        <GridComponent
-          colors={colors}
-          data={[
-            1,1,1,3,3,7,7,9,9,9,10,
-            1,2,1,5,3,3,7,7,11,9,10,
-            6,2,2,5,3,12,12,11,11,9,10,
-            6,6,2,5,5,4,12,12,8,10,10,
-            6,6,2,5,4,4,4,12,8,8,8,
-          ]}
-        />
+        <div className="flex flex-wrap -m-1 h-full w-full" style={{ minHeight: '85vh' }}>
+        {/* <!-- Individual items will go here --> */}
+        <AutoSizer>
+          {({ height, width }) => {
+            // console.log(height, width);
+            return (
+              <Grid
+              cellRenderer={({ rowIndex, columnIndex, key, style }) => {
+                // Her satırdaki eleman sayısını hesapla
+                const itemsPerRow = Math.floor(width / 154);
+
+                // rowIndex ve columnIndex kullanarak doğru elemanı bul
+                const index = rowIndex * itemsPerRow + columnIndex;
+
+                // Eğer hesaplanan index, solutions dizisinin uzunluğunu aşıyorsa,
+                // bu hücre için veri yok demektir.
+                if (index >= solutions.length) {
+                  return null; // veya boş bir div, hücrenin boş kalmasını istiyorsanız
+                }
+
+                const paddedStyle = {
+                  ...style,
+                  padding: 10,
+                };
+                
+                return (
+                  <div key={key} style={paddedStyle}>
+                    <GridComponent colors={colors} data={solutions[index]} />
+                  </div>
+                );
+              }}
+                height={height}
+                width={width}
+                rowCount={Math.ceil(solutions.length / Math.floor(width / 154))}
+                columnCount={Math.floor(width / 154)}
+                rowHeight={90}
+                columnWidth={154}
+              
+              />
+            );
+          }}
+        </AutoSizer>
+      </div>
       </div>
     </DndProvider>
   );
