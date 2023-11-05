@@ -4,6 +4,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { FiRotateCw } from 'react-icons/fi';
 import { LuFlipHorizontal } from 'react-icons/lu';
 import { toast } from 'react-hot-toast';
+import GridComponent from '../components/previewBoard';
 
 export const initialPieces = [
   {
@@ -434,7 +435,7 @@ const transformations = [
   ['rotate', 'rotate'], // 5. Rotated 180 degrees
   ['rotate', 'rotate', 'flip'], // 6. Rotated 180 degrees and flipped
   ['rotate', 'rotate', 'rotate'], // 7. Rotated 270 degrees
-  ['rotate', 'rotate', 'rotate', 'flip'] // 8. Rotated 270 degrees and flipped
+  ['rotate', 'rotate', 'rotate', 'flip'], // 8. Rotated 270 degrees and flipped
 ];
 
 function Test() {
@@ -448,7 +449,7 @@ function Test() {
       console.log('Çözüm bulundu: Tüm parçalar yerleştirildi.');
       return true; // Çözüm başarılı
     }
-  
+
     for (let currentPieceIndex = pieceIndex; currentPieceIndex < pieces.length; currentPieceIndex++) {
       let piece = pieces[currentPieceIndex];
       for (let transformation of transformations) {
@@ -458,7 +459,7 @@ function Test() {
             if (canPlacePiece(updatedBoardState, piece.shape, r, c, piece.id)) {
               updatedBoardState = placePiece(piece, r, c, updatedBoardState);
               setBoardState(updatedBoardState);
-              await new Promise(resolve => setTimeout(resolve, 100));
+              await new Promise((resolve) => setTimeout(resolve, 100));
 
               pieceIndex++;
               if (await findSolution()) {
@@ -468,29 +469,35 @@ function Test() {
               updatedBoardState = removePiece(piece, updatedBoardState);
               setBoardState(updatedBoardState);
               pieceIndex--;
-
             }
           }
         }
       }
     }
-  
+
     console.log('Bu konfigürasyonda çözüm bulunamadı, bir önceki adıma dönülüyor...');
+
     return false; // Mevcut konfigürasyonda çözüm bulunamadı, backtracking
   }
 
   function canPlacePiece(internalBoardState, itemShape, targetRow, targetCol, itemId) {
     return itemShape.every((cell) => {
       const { row: cellRow, col: cellCol } = cell;
-      const finalRow = targetRow + cellRow;
-      const finalCol = targetCol + cellCol;
+      const { row: itemRow, col: itemCol } = itemShape[0];
+      let offsetRow = itemRow;
+      let offsetCol = itemCol;
+
+      const finalRow = targetRow + cellRow - offsetRow;
+      const finalCol = targetCol + cellCol - offsetCol;
 
       if (finalRow < 0 || finalRow >= 5 || finalCol < 0 || finalCol >= 11) {
+        console.log("You can't place this piece outside of the board!");
         return false;
       }
 
       const existingPieceId = internalBoardState[finalRow * 11 + finalCol];
       if (existingPieceId && existingPieceId !== itemId) {
+        console.log("You can't place this piece on top of another piece!");
         return false;
       }
 
@@ -504,23 +511,51 @@ function Test() {
     handleDropPiece(piece.id, false);
     return newBoardState;
   };
-  
+
+  const placePieceHardCoded = (piece, row, col, currentBoardState) => {
+    let offsetRow, offsetCol;
+
+    const { row: itemRow, col: itemCol } = piece.shape[0];
+    offsetRow = itemRow;
+    offsetCol = itemCol;
+
+    console.log(piece.shape, row, col, piece.id);
+    if (!canPlacePiece(currentBoardState, piece.shape, row, col, piece.id)) {
+      return currentBoardState;
+    }
+
+    const squaresToUpdate = piece.shape.map((cell) => {
+      //Handle itemrow
+      const { row: cellRow, col: cellCol } = cell;
+      return (row + cellRow - offsetRow) * 11 + col + cellCol - offsetCol;
+    });
+
+    const cleanedBoardState = currentBoardState.map((pieceId) => (pieceId === piece.id ? null : pieceId));
+
+    const newBoardState = [...cleanedBoardState];
+    squaresToUpdate.forEach((squareIndex) => {
+      newBoardState[squareIndex] = piece.id;
+    });
+
+    handleDropPiece(piece.id, true);
+    return newBoardState;
+  };
 
   const placePiece = (piece, row, col, currentBoardState) => {
     let offsetRow, offsetCol;
 
     const { row: itemRow, col: itemCol } = piece.shape[0];
-    // offsetRow = itemRow;
-    // offsetCol = itemCol;
+    offsetRow = itemRow;
+    offsetCol = itemCol;
 
     console.log(piece.shape, row, col, piece.id);
-    if (!canPlacePiece(currentBoardState, piece.shape, row , col, piece.id)) {
+    if (!canPlacePiece(currentBoardState, piece.shape, row, col, piece.id)) {
       return currentBoardState;
     }
 
     const squaresToUpdate = piece.shape.map((cell) => {
       const { row: cellRow, col: cellCol } = cell;
-      return (row + cellRow) * 11 + col + cellCol;
+      return (row + cellRow - offsetRow) * 11 + col + cellCol - offsetCol;
     });
 
     const cleanedBoardState = currentBoardState.map((pieceId) => (pieceId === piece.id ? null : pieceId));
@@ -714,8 +749,9 @@ function Test() {
   }
 
   const enhancedPutPieces = async () => {
-    let updatedBoardState = [...boardState];
+    let updatedBoardState = [...boardState]; // başlangıçta boardState'i kopyala
 
+    // Helper function to apply transformations on a piece
     const transformPiece = async (piece, transformations) => {
       for (const transform of transformations) {
         if (transform === 'rotate') {
@@ -817,6 +853,29 @@ function Test() {
         >
           Find a Solution
         </button>
+
+        <button
+          className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
+          onClick={() => {
+            console.log('Test', pieces[3], 3, 5, pieces[3].id);
+            const state = placePiece(pieces[3], 0, 1, boardState);
+            setBoardState(state);
+          }}
+        >
+          Test
+        </button>
+
+        <div>JS Version</div>
+        <GridComponent
+          colors={colors}
+          data={[
+            1,1,1,3,3,7,7,9,9,9,10,
+            1,2,1,5,3,3,7,7,11,9,10,
+            6,2,2,5,3,12,12,11,11,9,10,
+            6,6,2,5,5,4,12,12,8,10,10,
+            6,6,2,5,4,4,4,12,8,8,8,
+          ]}
+        />
       </div>
     </DndProvider>
   );
