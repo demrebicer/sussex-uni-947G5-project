@@ -6,8 +6,8 @@ import { LuFlipHorizontal } from 'react-icons/lu';
 import { toast } from 'react-hot-toast';
 import GridComponent from '../components/previewBoard';
 import { Spinner, Button } from '@nextui-org/react';
-import { FiArrowLeft } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { FiArrowLeft } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import Grid from 'react-virtualized/dist/commonjs/Grid';
@@ -443,7 +443,7 @@ function Test() {
   const navigate = useNavigate();
 
   const goBack = () => {
-    navigate("/tasks");
+    navigate('/tasks');
   };
 
   useEffect(() => {
@@ -478,7 +478,7 @@ function Test() {
       return true;
     });
   }
-  
+
   const handleDropPiece = (id, isOnBoard) => {
     setPieces((prev) => prev.map((piece) => (piece.id === id ? { ...piece, isOnBoard } : piece)));
     console.log(`Parça ${id} tahtaya bırakıldı.`);
@@ -577,8 +577,7 @@ function Test() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-        
-      <div className="flex flex-col justify-start items-center min-h-screen py-8" style={{backgroundColor:"#423567"}}>
+      <div className="flex flex-col justify-start items-center min-h-screen py-8" style={{ backgroundColor: '#423567' }}>
         <div className="flex flex-wrap justify-center mb-4">
           {pieces.map((piece) =>
             !piece.isOnBoard ? (
@@ -616,14 +615,16 @@ function Test() {
           />
         </div>
 
-        {isWorkerTerminated == false ? <button
-          className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
-          onClick={() => {
-            handleStart();
-          }}
-        >
-         {isWorkerStart == false ? "Start Find a Solution" : <Spinner size="large" color="white" />}
-        </button>: null}
+        {isWorkerTerminated == false ? (
+          <button
+            className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
+            onClick={() => {
+              handleStart();
+            }}
+          >
+            {isWorkerStart == false ? 'Start Find a Solution' : <Spinner size="large" color="white" />}
+          </button>
+        ) : null}
 
         <span className="text-white mt-5">{solutions.length} solutions found</span>
 
@@ -645,16 +646,14 @@ function Test() {
               let rowHeight = 100;
               return (
                 <Grid
-                  style={{ display: 'flex', justifyContent: 'center'}}
+                  style={{ display: 'flex', justifyContent: 'center' }}
                   cellRenderer={({ rowIndex, columnIndex, key, style }) => {
-
                     const itemsPerRow = Math.floor(width / colWidth);
 
-                  
                     const index = rowIndex * itemsPerRow + columnIndex;
 
                     if (index >= solutions.length) {
-                      return null; 
+                      return null;
                     }
 
                     const paddedStyle = {
@@ -680,17 +679,10 @@ function Test() {
           </AutoSizer>
         </div>
         <div className="absolute top-0 left-0 p-4 z-10">
-        <Button
-          auto
-          isIconOnly
-          color="default"
-          onClick={goBack}
-          variant="bordered"
-          className="text-white flex items-center border-none"
-        >
-          <FiArrowLeft size={32} />
-        </Button>
-      </div>
+          <Button auto isIconOnly color="default" onClick={goBack} variant="bordered" className="text-white flex items-center border-none">
+            <FiArrowLeft size={32} />
+          </Button>
+        </div>
       </div>
     </DndProvider>
   );

@@ -61,33 +61,32 @@ const Preview = () => {
           {({ height, width }) => {
             return (
               <Grid
-              cellRenderer={({ rowIndex, columnIndex, key, style }) => {
-                const itemsPerRow = Math.floor(width / 154);
+                cellRenderer={({ rowIndex, columnIndex, key, style }) => {
+                  const itemsPerRow = Math.floor(width / 154);
 
-                const index = rowIndex * itemsPerRow + columnIndex;
+                  const index = rowIndex * itemsPerRow + columnIndex;
 
-                if (index >= solutions.length) {
-                  return null; 
-                }
+                  if (index >= solutions.length) {
+                    return null;
+                  }
 
-                const paddedStyle = {
-                  ...style,
-                  padding: 10,
-                };
-                
-                return (
-                  <div key={key} style={paddedStyle}>
-                    <GridComponent colors={colors} data={solutions[index]} />
-                  </div>
-                );
-              }}
+                  const paddedStyle = {
+                    ...style,
+                    padding: 10,
+                  };
+
+                  return (
+                    <div key={key} style={paddedStyle}>
+                      <GridComponent colors={colors} data={solutions[index]} />
+                    </div>
+                  );
+                }}
                 height={height}
                 width={width}
                 rowCount={Math.ceil(solutions.length / Math.floor(width / 154))}
                 columnCount={Math.floor(width / 154)}
                 rowHeight={90}
                 columnWidth={154}
-              
               />
             );
           }}

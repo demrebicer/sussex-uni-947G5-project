@@ -1,15 +1,14 @@
-import { useEffect, useState } from "react";
-import mainMenuBackground from "../assets/images/mainMenuBackground.svg";
-import { useNavigate } from "react-router-dom";
-import ChessBoard from "../components/chessBoard";
-import { FiArrowLeft } from "react-icons/fi";
-import { Tooltip, Button } from "@nextui-org/react";
-import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import { AiOutlineQuestionCircle } from "react-icons/ai";
-import { toast } from "react-hot-toast";
+import { useEffect, useState } from 'react';
+import mainMenuBackground from '../assets/images/mainMenuBackground.svg';
+import { useNavigate } from 'react-router-dom';
+import ChessBoard from '../components/chessBoard';
+import { FiArrowLeft } from 'react-icons/fi';
+import { Tooltip, Button } from '@nextui-org/react';
+import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { AiOutlineQuestionCircle } from 'react-icons/ai';
+import { toast } from 'react-hot-toast';
 
-import { BsArrow90DegDown } from "react-icons/bs";
-
+import { BsArrow90DegDown } from 'react-icons/bs';
 
 const NQueensProblem = () => {
   const [n, setN] = useState(4);
@@ -33,7 +32,7 @@ const NQueensProblem = () => {
   const navigate = useNavigate();
 
   const goBack = () => {
-    navigate("/tasks");
+    navigate('/tasks');
   };
 
   const backtrack = (res, n, board = [], r = 0) => {
@@ -42,11 +41,7 @@ const NQueensProblem = () => {
       return;
     }
     for (let c = 0; c < n; c++) {
-      if (
-        !board.some(
-          (bc, br) => bc === c || bc === c + r - br || bc === c - r + br
-        )
-      ) {
+      if (!board.some((bc, br) => bc === c || bc === c + r - br || bc === c - r + br)) {
         board.push(c);
         backtrack(res, n, board, r + 1);
         board.pop();
@@ -55,28 +50,19 @@ const NQueensProblem = () => {
   };
 
   const filterSolutionsByUserQueens = (solutions, userQueens) => {
-    return solutions.filter((solution) =>
-      userQueens.every((uq) =>
-        solution.some((sq) => sq.row === uq.row && sq.col === uq.col)
-      )
-    );
+    return solutions.filter((solution) => userQueens.every((uq) => solution.some((sq) => sq.row === uq.row && sq.col === uq.col)));
   };
 
   const solveNQueens = (n) => {
     const res = [];
     backtrack(res, n);
-    const solutions = res.map((solution) =>
-      solution.map((c, r) => ({ row: r, col: c }))
-    );
+    const solutions = res.map((solution) => solution.map((c, r) => ({ row: r, col: c })));
 
     setQueens(solutions);
-    const filteredSolutions = filterSolutionsByUserQueens(
-      solutions,
-      userQueens
-    );
+    const filteredSolutions = filterSolutionsByUserQueens(solutions, userQueens);
 
     if (filteredSolutions.length === 0) {
-      toast.error("No solutions found with the selected queens!");
+      toast.error('No solutions found with the selected queens!');
       setQueens([]);
       setUserQueens([]);
     } else {
@@ -99,9 +85,7 @@ const NQueensProblem = () => {
 
   const addOrRemoveQueen = (row, col) => {
     if (isQueen(row, col)) {
-      setUserQueens(
-        userQueens.filter((q) => !(q.row === row && q.col === col))
-      );
+      setUserQueens(userQueens.filter((q) => !(q.row === row && q.col === col)));
     } else {
       setUserQueens([...userQueens, { row, col }]);
     }
@@ -114,7 +98,6 @@ const NQueensProblem = () => {
     solveNQueens(Number(n));
     setCalculated(true);
   };
-  
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black relative overflow-hidden z-0">
@@ -145,24 +128,15 @@ const NQueensProblem = () => {
                 placement="top"
                 showArrow={true}
                 classNames={{
-                  base: "py-2 px-4 shadow-xl text-black bg-gradient-to-br from-white to-neutral-400 z-30 w-64",
-                  arrow: "bg-neutral-400 dark:bg-white",
+                  base: 'py-2 px-4 shadow-xl text-black bg-gradient-to-br from-white to-neutral-400 z-30 w-64',
+                  arrow: 'bg-neutral-400 dark:bg-white',
                 }}
                 style={{
                   zIndex: 30,
                 }}
               >
-                <Button
-                  auto
-                  isIconOnly
-                  color="default"
-                  variant="bordered"
-                  className="text-white flex items-center border-none"
-                >
-                  <AiOutlineQuestionCircle
-                    size={32}
-                    className="text-lg cursor-pointer"
-                  />
+                <Button auto isIconOnly color="default" variant="bordered" className="text-white flex items-center border-none">
+                  <AiOutlineQuestionCircle size={32} className="text-lg cursor-pointer" />
                 </Button>
               </Tooltip>
             </div>
@@ -170,40 +144,39 @@ const NQueensProblem = () => {
           <button
             onClick={() => calculateNQueens(Number(n))}
             className="px-6 py-2 border-2 border-white rounded text-white hover:bg-white hover:text-black transition duration-300"
-            style={{fontFamily: "Roboto"}}
+            style={{ fontFamily: 'Roboto' }}
           >
             Calculate
           </button>
-
-          
         </div>
         <div className="flex-1 flex flex-col items-center justify-center">
-        {showTip && (
+          {showTip && (
             <div className=" ml-5 mt-5">
               <div className="flex items-center p-2 rounded-full">
-                <BsArrow90DegDown size={24} className="mr-2"/>
+                <BsArrow90DegDown size={24} className="mr-2" />
                 {/* //Make sure Roboto font */}
-                <p className="text-md mb-4" style={{fontFamily: "Roboto"}}>You can manually place a queen by clicking on the squares!</p>
+                <p className="text-md mb-4" style={{ fontFamily: 'Roboto' }}>
+                  You can manually place a queen by clicking on the squares!
+                </p>
               </div>
             </div>
           )}
-        <ChessBoard
-          queens={calculated ? queens[currentSolutionIndex] : userQueens}
-          n={n}
-          addOrRemoveQueen={addOrRemoveQueen}
-          isQueen={isQueen}
-        />
-       
+          <ChessBoard
+            queens={calculated ? queens[currentSolutionIndex] : userQueens}
+            n={n}
+            addOrRemoveQueen={addOrRemoveQueen}
+            isQueen={isQueen}
+          />
+
           <div className="mt-4">
-            {" "}
+            {' '}
             <div className="flex items-center">
               <button
                 onClick={goToPreviousSolution}
                 disabled={queens.length === 0 || currentSolutionIndex === 0}
                 className="mr-2 icon-button"
                 style={{
-                  opacity:
-                    queens.length === 0 || currentSolutionIndex === 0 ? 0.5 : 1,
+                  opacity: queens.length === 0 || currentSolutionIndex === 0 ? 0.5 : 1,
                 }}
               >
                 <FaArrowLeft size={20} />
@@ -219,17 +192,10 @@ const NQueensProblem = () => {
 
               <button
                 onClick={goToNextSolution}
-                disabled={
-                  queens.length === 0 ||
-                  currentSolutionIndex === queens.length - 1
-                }
+                disabled={queens.length === 0 || currentSolutionIndex === queens.length - 1}
                 className="icon-button"
                 style={{
-                  opacity:
-                    queens.length === 0 ||
-                    currentSolutionIndex === queens.length - 1
-                      ? 0.5
-                      : 1,
+                  opacity: queens.length === 0 || currentSolutionIndex === queens.length - 1 ? 0.5 : 1,
                 }}
               >
                 <FaArrowRight size={20} />
@@ -240,14 +206,7 @@ const NQueensProblem = () => {
       </div>
 
       <div className="absolute top-0 left-0 p-4 z-10">
-        <Button
-          auto
-          isIconOnly
-          color="default"
-          onClick={goBack}
-          variant="bordered"
-          className="text-white flex items-center border-none"
-        >
+        <Button auto isIconOnly color="default" onClick={goBack} variant="bordered" className="text-white flex items-center border-none">
           <FiArrowLeft size={32} />
         </Button>
       </div>

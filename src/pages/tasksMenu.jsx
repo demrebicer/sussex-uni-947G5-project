@@ -1,13 +1,13 @@
-import React from "react";
-import { Button } from "@nextui-org/react";
-import mainMenuBackground from "../assets/images/mainMenuBackground.svg";
-import { useNavigate } from "react-router-dom";
-import { FiArrowLeft } from "react-icons/fi";
+import React from 'react';
+import { Button } from '@nextui-org/react';
+import mainMenuBackground from '../assets/images/mainMenuBackground.svg';
+import { useNavigate } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
 
 const tasks = [
-  { id: "nqueensproblem", name: "Task 2: N-Queens Problem" },
-  { id: "polyspherepuzzle", name: 'Task 3: Polyspher Puzzle' },
-  { id: "test", name: 'Task 3: Test' },
+  { id: 'nqueensproblem', name: 'Task 2: N-Queens Problem' },
+  { id: 'polyspherepuzzle', name: 'Task 3: Polyspher Puzzle' },
+  { id: 'test', name: 'Task 3: Test' },
 ];
 
 const Tasks = () => {
@@ -18,7 +18,7 @@ const Tasks = () => {
   };
 
   const goBack = () => {
-    navigate("/");
+    navigate('/');
   };
 
   return (
@@ -31,21 +31,12 @@ const Tasks = () => {
         </div>
       </div>
       <div className="absolute top-0 left-0 z-20 p-4">
-        <Button
-          auto
-          isIconOnly
-          color="default"
-          onClick={goBack}
-          variant="bordered"
-          className="text-white flex items-center border-none"
-        >
+        <Button auto isIconOnly color="default" onClick={goBack} variant="bordered" className="text-white flex items-center border-none">
           <FiArrowLeft size={32} />
         </Button>
       </div>
       <div className="z-10 text-center mb-12">
-        <h1 className="text-6xl font-bold mb-4 text-white">
-          Please Choose Your Tasks
-        </h1>
+        <h1 className="text-6xl font-bold mb-4 text-white">Please Choose Your Tasks</h1>
       </div>
       <div className="z-10 flex flex-wrap justify-center items-center gap-8 max-w-screen-lg">
         {tasks.map((task) => (
