@@ -19,7 +19,7 @@ const PolyspherePuzzle = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-black relative overflow-hidden z-0">
       <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 opacity-75"></div>
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-black opacity-50"></div>
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-black opacity-20"></div>
         <div className="absolute inset-0 pointer-events-none -z-20">
           <img src={mainMenuBackground} alt="Main Menu Background" />
         </div>

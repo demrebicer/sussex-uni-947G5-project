@@ -5,7 +5,9 @@ import { FiRotateCw } from 'react-icons/fi';
 import { LuFlipHorizontal } from 'react-icons/lu';
 import { toast } from 'react-hot-toast';
 import GridComponent from '../components/previewBoard';
-import { Spinner } from '@nextui-org/react';
+import { Spinner, Button } from '@nextui-org/react';
+import { FiArrowLeft } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import Grid from 'react-virtualized/dist/commonjs/Grid';
@@ -438,6 +440,12 @@ function Test() {
   const [isWorkerStart, setIsWorkerStart] = useState(false);
   const [isWorkerTerminated, setIsWorkerTerminated] = useState(false);
 
+  const navigate = useNavigate();
+
+  const goBack = () => {
+    navigate("/tasks");
+  };
+
   useEffect(() => {
     const newWorker = new Worker('worker.js');
     setWorker(newWorker);
@@ -569,7 +577,8 @@ function Test() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="flex flex-col justify-start items-center min-h-screen bg-gray-800 py-8">
+        
+      <div className="flex flex-col justify-start items-center min-h-screen py-8" style={{backgroundColor:"#423567"}}>
         <div className="flex flex-wrap justify-center mb-4">
           {pieces.map((piece) =>
             !piece.isOnBoard ? (
@@ -670,6 +679,18 @@ function Test() {
             }}
           </AutoSizer>
         </div>
+        <div className="absolute top-0 left-0 p-4 z-10">
+        <Button
+          auto
+          isIconOnly
+          color="default"
+          onClick={goBack}
+          variant="bordered"
+          className="text-white flex items-center border-none"
+        >
+          <FiArrowLeft size={32} />
+        </Button>
+      </div>
       </div>
     </DndProvider>
   );

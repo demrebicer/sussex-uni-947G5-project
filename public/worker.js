@@ -275,7 +275,7 @@ function recurse(matrix, rows, columns, solutions, partialSolution, choices, fix
 
     const partialSolutionFormatted = printSolution(choices, partialSolution);
     if (compareArraysIgnoringNulls(partialSolutionFormatted, fixedPieces.boardState)) {
-      solutions.push(partialSolution);
+      // solutions.push(partialSolution);
       // console.log('Solution Found');
       // console.log(partialSolutionFormatted);
       self.postMessage({ type: 'SOLUTION', data: partialSolutionFormatted });
