@@ -50,7 +50,6 @@ const Preview = () => {
         <button onClick={handleStart} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
           Start
         </button>
-        {/* Show solution count */}
         <span className="text-white">{solutions.length} solutions found</span>
         <button onClick={handleStop} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
           Stop
@@ -58,23 +57,17 @@ const Preview = () => {
       </div>
 
       <div className="flex flex-wrap -m-1 h-full w-full" style={{ minHeight: '85vh' }}>
-        {/* <!-- Individual items will go here --> */}
         <AutoSizer>
           {({ height, width }) => {
-            // console.log(height, width);
             return (
               <Grid
               cellRenderer={({ rowIndex, columnIndex, key, style }) => {
-                // Her satırdaki eleman sayısını hesapla
                 const itemsPerRow = Math.floor(width / 154);
 
-                // rowIndex ve columnIndex kullanarak doğru elemanı bul
                 const index = rowIndex * itemsPerRow + columnIndex;
 
-                // Eğer hesaplanan index, solutions dizisinin uzunluğunu aşıyorsa,
-                // bu hücre için veri yok demektir.
                 if (index >= solutions.length) {
-                  return null; // veya boş bir div, hücrenin boş kalmasını istiyorsanız
+                  return null; 
                 }
 
                 const paddedStyle = {

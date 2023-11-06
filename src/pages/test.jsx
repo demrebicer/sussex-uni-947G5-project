@@ -5,11 +5,11 @@ import { FiRotateCw } from 'react-icons/fi';
 import { LuFlipHorizontal } from 'react-icons/lu';
 import { toast } from 'react-hot-toast';
 import GridComponent from '../components/previewBoard';
+import { Spinner } from '@nextui-org/react';
 
 import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import Grid from 'react-virtualized/dist/commonjs/Grid';
 import 'react-virtualized/styles.css';
-
 
 export const initialPieces = [
   {
@@ -272,7 +272,7 @@ function Square({
         offsetCol = itemCol;
       }
 
-      if (!canPlacePiece(boardState, itemShape, squareRow - offsetRow, squareCol - offsetCol, item.id)) {
+      if (!canPlacePiece(itemShape, squareRow - offsetRow, squareCol - offsetCol, item.id)) {
         return;
       }
 
@@ -318,7 +318,7 @@ function Square({
         return (squareRow + cellRow - offsetRow) * 11 + squareCol + cellCol - offsetCol;
       });
 
-      if (!canPlacePiece(boardState, itemShape, squareRow - offsetRow, squareCol - offsetCol, item.id)) {
+      if (!canPlacePiece(itemShape, squareRow - offsetRow, squareCol - offsetCol, item.id)) {
         return;
       }
 
@@ -428,21 +428,6 @@ function Board({ onDropPiece, highlightedSquares, setHighlightedSquares, pieces,
   );
 }
 
-let pieceIndex = 0; // Başlangıçta ilk parçayı işaret eder
-const totalRows = 5; // Toplam satır sayısı
-const totalCols = 11; // Toplam sütun sayısı
-let updatedBoardState = Array(5 * 11).fill(null);
-const transformations = [
-  [], // 1. Original position
-  ['flip'], // 2. Horizontally flipped
-  ['rotate'], // 3. Rotated 90 degrees
-  ['rotate', 'flip'], // 4. Rotated 90 degrees and flipped
-  ['rotate', 'rotate'], // 5. Rotated 180 degrees
-  ['rotate', 'rotate', 'flip'], // 6. Rotated 180 degrees and flipped
-  ['rotate', 'rotate', 'rotate'], // 7. Rotated 270 degrees
-  ['rotate', 'rotate', 'rotate', 'flip'], // 8. Rotated 270 degrees and flipped
-];
-
 function Test() {
   const [boardState, setBoardState] = useState(Array(5 * 11).fill(null));
   const [pieces, setPieces] = useState(initialPieces);
@@ -450,6 +435,8 @@ function Test() {
 
   const [worker, setWorker] = useState(null);
   const [solutions, setSolutions] = useState([]);
+  const [isWorkerStart, setIsWorkerStart] = useState(false);
+  const [isWorkerTerminated, setIsWorkerTerminated] = useState(false);
 
   useEffect(() => {
     const newWorker = new Worker('worker.js');
@@ -465,132 +452,25 @@ function Test() {
     return () => newWorker.terminate();
   }, []);
 
-  async function findSolution() {
-    //Loop every item on board if there is no null you find a solution
-    if (!boardState.includes(null)) {
-      console.log('Çözüm bulundu: Tüm parçalar yerleştirildi.');
-      return true; // Çözüm başarılı
-    }
-
-    for (let currentPieceIndex = pieceIndex; currentPieceIndex < pieces.length; currentPieceIndex++) {
-      let piece = pieces[currentPieceIndex];
-      for (let transformation of transformations) {
-        piece = await transformPiece(piece, transformation);
-        for (let r = 0; r < totalRows; r++) {
-          for (let c = 0; c < totalCols; c++) {
-            if (canPlacePiece(updatedBoardState, piece.shape, r, c, piece.id)) {
-              updatedBoardState = placePiece(piece, r, c, updatedBoardState);
-              setBoardState(updatedBoardState);
-              await new Promise((resolve) => setTimeout(resolve, 100));
-
-              pieceIndex++;
-              if (await findSolution()) {
-                return true; // Çözüm bulundu, rekürsif olarak dön
-              }
-              // Çözüm bulunamadı, yerleştirme geri alınıyor
-              updatedBoardState = removePiece(piece, updatedBoardState);
-              setBoardState(updatedBoardState);
-              pieceIndex--;
-            }
-          }
-        }
-      }
-    }
-
-    console.log('Bu konfigürasyonda çözüm bulunamadı, bir önceki adıma dönülüyor...');
-
-    return false; // Mevcut konfigürasyonda çözüm bulunamadı, backtracking
-  }
-
-  function canPlacePiece(internalBoardState, itemShape, targetRow, targetCol, itemId) {
+  function canPlacePiece(itemShape, targetRow, targetCol, itemId) {
     return itemShape.every((cell) => {
       const { row: cellRow, col: cellCol } = cell;
-      const { row: itemRow, col: itemCol } = itemShape[0];
-      let offsetRow = itemRow;
-      let offsetCol = itemCol;
-
-      const finalRow = targetRow + cellRow - offsetRow;
-      const finalCol = targetCol + cellCol - offsetCol;
+      const finalRow = targetRow + cellRow;
+      const finalCol = targetCol + cellCol;
 
       if (finalRow < 0 || finalRow >= 5 || finalCol < 0 || finalCol >= 11) {
-        console.log("You can't place this piece outside of the board!");
         return false;
       }
 
-      const existingPieceId = internalBoardState[finalRow * 11 + finalCol];
+      const existingPieceId = boardState[finalRow * 11 + finalCol];
       if (existingPieceId && existingPieceId !== itemId) {
-        console.log("You can't place this piece on top of another piece!");
         return false;
       }
 
       return true;
     });
   }
-
-  const removePiece = (piece, currentBoardState) => {
-    //Loop all items in board state and if pieace.id == item then set item to null
-    const newBoardState = currentBoardState.map((item) => (item === piece.id ? null : item));
-    handleDropPiece(piece.id, false);
-    return newBoardState;
-  };
-
-  const placePieceHardCoded = (piece, row, col, currentBoardState) => {
-    let offsetRow, offsetCol;
-
-    const { row: itemRow, col: itemCol } = piece.shape[0];
-    offsetRow = itemRow;
-    offsetCol = itemCol;
-
-    console.log(piece.shape, row, col, piece.id);
-    if (!canPlacePiece(currentBoardState, piece.shape, row, col, piece.id)) {
-      return currentBoardState;
-    }
-
-    const squaresToUpdate = piece.shape.map((cell) => {
-      //Handle itemrow
-      const { row: cellRow, col: cellCol } = cell;
-      return (row + cellRow - offsetRow) * 11 + col + cellCol - offsetCol;
-    });
-
-    const cleanedBoardState = currentBoardState.map((pieceId) => (pieceId === piece.id ? null : pieceId));
-
-    const newBoardState = [...cleanedBoardState];
-    squaresToUpdate.forEach((squareIndex) => {
-      newBoardState[squareIndex] = piece.id;
-    });
-
-    handleDropPiece(piece.id, true);
-    return newBoardState;
-  };
-
-  const placePiece = (piece, row, col, currentBoardState) => {
-    let offsetRow, offsetCol;
-
-    const { row: itemRow, col: itemCol } = piece.shape[0];
-    offsetRow = itemRow;
-    offsetCol = itemCol;
-
-    console.log(piece.shape, row, col, piece.id);
-    if (!canPlacePiece(currentBoardState, piece.shape, row, col, piece.id)) {
-      return currentBoardState;
-    }
-
-    const squaresToUpdate = piece.shape.map((cell) => {
-      const { row: cellRow, col: cellCol } = cell;
-      return (row + cellRow - offsetRow) * 11 + col + cellCol - offsetCol;
-    });
-
-    const cleanedBoardState = currentBoardState.map((pieceId) => (pieceId === piece.id ? null : pieceId));
-
-    const newBoardState = [...cleanedBoardState];
-    squaresToUpdate.forEach((squareIndex) => {
-      newBoardState[squareIndex] = piece.id;
-    });
-
-    handleDropPiece(piece.id, true);
-    return newBoardState;
-  };
-
+  
   const handleDropPiece = (id, isOnBoard) => {
     setPieces((prev) => prev.map((piece) => (piece.id === id ? { ...piece, isOnBoard } : piece)));
     console.log(`Parça ${id} tahtaya bırakıldı.`);
@@ -674,147 +554,17 @@ function Test() {
     });
   };
 
-  const handlePutRandomPiece = () => {
-    const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
-    const randomRow = Math.floor(Math.random() * 5);
-    const randomCol = Math.floor(Math.random() * 11);
-
-    if (canPlacePiece(boardState, randomPiece.shape, randomRow, randomCol, randomPiece.id)) {
-      const squaresToUpdate = randomPiece.shape.map((cell) => {
-        const { row: cellRow, col: cellCol } = cell;
-        return (randomRow + cellRow) * 11 + randomCol + cellCol;
-      });
-
-      const cleanedBoardState = boardState.map((pieceId) => (pieceId === randomPiece.id ? null : pieceId));
-
-      const newBoardState = [...cleanedBoardState];
-      squaresToUpdate.forEach((squareIndex) => {
-        newBoardState[squareIndex] = randomPiece.id;
-      });
-
-      setBoardState(newBoardState);
-      handleDropPiece(randomPiece.id, true);
-    } else {
-      // toast.error("This piece can't fit here!");
-    }
-  };
-
-  const simplePutPiece = () => {
-    let updatedBoardState;
-
-    let piece1 = pieces[0];
-    const row1 = 0;
-    const col1 = 0;
-
-    let piece2 = pieces[2];
-    const row2 = 1;
-    const col2 = 5;
-
-    const placePiece = (piece, row, col, currentBoardState) => {
-      const squaresToUpdate = piece.shape.map((cell) => {
-        const { row: cellRow, col: cellCol } = cell;
-        return (row + cellRow) * 11 + col + cellCol;
-      });
-
-      const cleanedBoardState = currentBoardState.map((pieceId) => (pieceId === piece.id ? null : pieceId));
-
-      const newBoardState = [...cleanedBoardState];
-      squaresToUpdate.forEach((squareIndex) => {
-        newBoardState[squareIndex] = piece.id;
-      });
-
-      handleDropPiece(piece.id, true);
-      return newBoardState;
-    };
-
-    updatedBoardState = placePiece(piece1, row1, col1, boardState);
-    updatedBoardState = placePiece(piece2, row2, col2, updatedBoardState);
-
-    setBoardState(updatedBoardState);
-  };
-
-  const transformPiece = async (piece, transformations) => {
-    for (const transform of transformations) {
-      if (transform === 'rotate') {
-        piece = await handleRotate(piece.id);
-      } else if (transform === 'flip') {
-        piece = await handleFlip(piece.id);
-      }
-    }
-    return piece;
-  };
-
-  function generateRandomPiecesTransformations() {
-    const piecesTransformations = [];
-    const transformations = ['rotate', 'flip'];
-
-    for (let i = 0; i < 12; i++) {
-      const randomTransformations = [];
-      const numberOfTransformations = Math.floor(Math.random() * 3);
-
-      for (let j = 0; j < numberOfTransformations; j++) {
-        const transformation = transformations[Math.floor(Math.random() * transformations.length)];
-        if (!randomTransformations.includes(transformation)) {
-          randomTransformations.push(transformation);
-        }
-      }
-
-      piecesTransformations.push({
-        pieceIndex: i,
-        transformations: randomTransformations,
-        row: Math.floor(Math.random() * 5),
-        col: Math.floor(Math.random() * 11),
-      });
-    }
-
-    return piecesTransformations;
-  }
-
-  const enhancedPutPieces = async () => {
-    let updatedBoardState = [...boardState]; // başlangıçta boardState'i kopyala
-
-    // Helper function to apply transformations on a piece
-    const transformPiece = async (piece, transformations) => {
-      for (const transform of transformations) {
-        if (transform === 'rotate') {
-          piece = await handleRotate(piece.id);
-        } else if (transform === 'flip') {
-          piece = await handleFlip(piece.id);
-        }
-      }
-      return piece;
-    };
-
-    const piecesTransformations = [
-      { pieceIndex: 0, transformations: ['rotate'], row: 0, col: 2 },
-      { pieceIndex: 1, transformations: ['rotate'], row: 1, col: 6 },
-      { pieceIndex: 2, transformations: ['rotate', 'rotate'], row: 0, col: 0 },
-      { pieceIndex: 3, transformations: [], row: 3, col: 5 },
-      { pieceIndex: 4, transformations: ['flip', 'rotate'], row: 0, col: 4 },
-      { pieceIndex: 5, transformations: [], row: 3, col: 9 },
-      { pieceIndex: 6, transformations: ['rotate'], row: 1, col: 7 },
-      { pieceIndex: 7, transformations: ['flip'], row: 0, col: 9 },
-      { pieceIndex: 8, transformations: ['rotate', 'rotate'], row: 1, col: 0 },
-      { pieceIndex: 9, transformations: ['flip'], row: 3, col: 3 },
-      { pieceIndex: 10, transformations: ['rotate'], row: 0, col: 5 },
-      { pieceIndex: 11, transformations: [], row: 0, col: 7 },
-    ];
-
-    for (const pieceTransform of piecesTransformations) {
-      let piece = pieces[pieceTransform.pieceIndex];
-      piece = await transformPiece(piece, pieceTransform.transformations);
-      updatedBoardState = placePiece(piece, pieceTransform.row, pieceTransform.col, updatedBoardState);
-    }
-
-    setBoardState(updatedBoardState);
-  };
-
   const handleStart = () => {
+    setIsWorkerStart(true);
     worker.postMessage({ command: 'START', data: { boardState } });
   };
 
   const handleStop = () => {
     worker.postMessage({ command: 'STOP' });
+
+    setIsWorkerTerminated(true);
+
+    worker.terminate();
   };
 
   return (
@@ -825,7 +575,6 @@ function Test() {
             !piece.isOnBoard ? (
               <div key={piece.id} className="mt-2 p-1">
                 <Piece id={piece.id} color={piece.color} shape={piece.shape} setHighlightedSquares={setHighlightedSquares} />
-                {/* Rotate Button */}
                 <div className="flex justify-center items-center gap-2 ">
                   <button
                     className="bg-gray-700 hover:bg-gray-600 rounded-full w-8 h-8 flex justify-center items-center"
@@ -834,7 +583,6 @@ function Test() {
                     <FiRotateCw size={24} className="text-gray-400 cursor-pointer" />
                   </button>
 
-                  {/* Flip Button */}
                   <button
                     className="bg-gray-700 hover:bg-gray-600 rounded-full w-8 h-8 flex justify-center items-center"
                     onClick={() => handleFlip(piece.id)}
@@ -859,88 +607,69 @@ function Test() {
           />
         </div>
 
-        <button
-          className="bg-gray-700 hover:bg-gray-600 w-32 h-6 flex justify-center items-center mt-5"
-          onClick={() => console.log(boardState)}
-        >
-          Console Log
-        </button>
-
-        <button
-          className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
-          onClick={async () => {
-            enhancedPutPieces();
-          }}
-        >
-          Hard Coded Solution
-        </button>
-
-        <button
+        {isWorkerTerminated == false ? <button
           className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
           onClick={() => {
             handleStart();
           }}
         >
-          Start Find a Solution
-        </button>
+         {isWorkerStart == false ? "Start Find a Solution" : <Spinner size="large" color="white" />}
+        </button>: null}
 
-        <span className="text-white">{solutions.length} solutions found</span>
+        <span className="text-white mt-5">{solutions.length} solutions found</span>
 
+        {isWorkerTerminated == false ? (
+          <button
+            className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
+            onClick={() => {
+              handleStop();
+            }}
+          >
+            Stop Solution Finder
+          </button>
+        ) : null}
 
-        <button
-          className="bg-gray-700 hover:bg-gray-600 w-64 h-12 flex justify-center items-center mt-5"
-          onClick={() => {
-            console.log('Test', pieces[3], 3, 5, pieces[3].id);
-            const state = placePiece(pieces[3], 0, 1, boardState);
-            setBoardState(state);
-          }}
-        >
-          Test
-        </button>
+        <div className="flex flex-wrap h-full w-full border-1 mt-8 border-white" style={{ minHeight: '83vh', width: '95%' }}>
+          <AutoSizer>
+            {({ height, width }) => {
+              let colWidth = 198;
+              let rowHeight = 100;
+              return (
+                <Grid
+                  style={{ display: 'flex', justifyContent: 'center'}}
+                  cellRenderer={({ rowIndex, columnIndex, key, style }) => {
 
-        <div className="flex flex-wrap -m-1 h-full w-full" style={{ minHeight: '85vh' }}>
-        {/* <!-- Individual items will go here --> */}
-        <AutoSizer>
-          {({ height, width }) => {
-            // console.log(height, width);
-            return (
-              <Grid
-              cellRenderer={({ rowIndex, columnIndex, key, style }) => {
-                // Her satırdaki eleman sayısını hesapla
-                const itemsPerRow = Math.floor(width / 154);
+                    const itemsPerRow = Math.floor(width / colWidth);
 
-                // rowIndex ve columnIndex kullanarak doğru elemanı bul
-                const index = rowIndex * itemsPerRow + columnIndex;
+                  
+                    const index = rowIndex * itemsPerRow + columnIndex;
 
-                // Eğer hesaplanan index, solutions dizisinin uzunluğunu aşıyorsa,
-                // bu hücre için veri yok demektir.
-                if (index >= solutions.length) {
-                  return null; // veya boş bir div, hücrenin boş kalmasını istiyorsanız
-                }
+                    if (index >= solutions.length) {
+                      return null; 
+                    }
 
-                const paddedStyle = {
-                  ...style,
-                  padding: 10,
-                };
-                
-                return (
-                  <div key={key} style={paddedStyle}>
-                    <GridComponent colors={colors} data={solutions[index]} />
-                  </div>
-                );
-              }}
-                height={height}
-                width={width}
-                rowCount={Math.ceil(solutions.length / Math.floor(width / 154))}
-                columnCount={Math.floor(width / 154)}
-                rowHeight={90}
-                columnWidth={154}
-              
-              />
-            );
-          }}
-        </AutoSizer>
-      </div>
+                    const paddedStyle = {
+                      ...style,
+                      paddingRight: 20,
+                    };
+
+                    return (
+                      <div key={key} style={paddedStyle}>
+                        <GridComponent colors={colors} data={solutions[index]} />
+                      </div>
+                    );
+                  }}
+                  height={height - 20}
+                  width={width}
+                  rowCount={Math.ceil(solutions.length / Math.floor(width / colWidth))}
+                  columnCount={Math.floor(width / colWidth)}
+                  rowHeight={rowHeight}
+                  columnWidth={colWidth}
+                />
+              );
+            }}
+          </AutoSizer>
+        </div>
       </div>
     </DndProvider>
   );

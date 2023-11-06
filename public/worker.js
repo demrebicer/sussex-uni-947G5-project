@@ -1,4 +1,3 @@
-// At the top of your worker script, outside of any functions
 let running = true;
 
 const piecesData = [
@@ -134,7 +133,6 @@ const piecesData = [
 const W = 11,
   H = 5;
 
-// Matrix generation
 
 function parseTiles(letters, tiles) {
   return letters.map((letter, index) => {
@@ -225,8 +223,6 @@ function createMatrix(data) {
   return makeAllChoices(letters, tiles);
 }
 
-// Algorithm X
-
 function minNumOnes(matrix, rows, columns) {
   let minColumn = null;
   let minValue = Number.MAX_VALUE;
@@ -249,28 +245,22 @@ function minNumOnes(matrix, rows, columns) {
 }
 
 function compareArraysIgnoringNulls(arr1, arr2) {
-  // Check if both arrays have the same length
   if (arr1.length !== arr2.length) {
     return false;
   }
 
-  // Helper function to check if an array is entirely composed of null values
   function isAllNulls(array) {
     return array.every(element => element === null);
   }
 
-  // If either array is entirely composed of null values, return true
   if (isAllNulls(arr1) || isAllNulls(arr2)) {
     return true;
   }
 
-  // Iterate over the arrays and compare each element
   for (let i = 0; i < arr1.length; i++) {
-    // If either element is null, skip the comparison and continue
     if (arr1[i] === null || arr2[i] === null) {
       continue;
     }
-    // If both elements are numbers, check if they are equal
     if (typeof arr1[i] === 'number' && typeof arr2[i] === 'number' && arr1[i] !== arr2[i]) {
       return false;
     }
@@ -282,26 +272,24 @@ function compareArraysIgnoringNulls(arr1, arr2) {
 
 function recurse(matrix, rows, columns, solutions, partialSolution, choices, fixedPieces) {
   if (columns.size === 0) {
-    // solutions.push(partialSolution);
-    // console.log('Solution Found');
 
     const partialSolutionFormatted = printSolution(choices, partialSolution);
     if (compareArraysIgnoringNulls(partialSolutionFormatted, fixedPieces.boardState)) {
       solutions.push(partialSolution);
-      console.log('Solution Found');
-      console.log(partialSolutionFormatted);
+      // console.log('Solution Found');
+      // console.log(partialSolutionFormatted);
       self.postMessage({ type: 'SOLUTION', data: partialSolutionFormatted });
     }
 
     return;
   }
 
-  if (solutions.length > 100) {
-    return;
-  }
+  // if (solutions.length > 100) {
+  //   return;
+  // }
 
   if (!running) {
-    return; // Stop running if the running flag has been set to false
+    return;
   }
 
   const [selectedCol, minVal] = minNumOnes(matrix, rows, columns);
@@ -335,7 +323,6 @@ function recurse(matrix, rows, columns, solutions, partialSolution, choices, fix
   }
 }
 
-// Runner
 
 function printSolution(choices, solution) {
   const solutionArr = [];
@@ -358,9 +345,7 @@ function printSolution(choices, solution) {
       line += flatMap[y * W + x];
       solutionArr.push(flatMap[y * W + x]);
     }
-    // console.log(line);
   }
-  // console.log('');
   return solutionArr;
 }
 
@@ -378,10 +363,8 @@ function solveDlx(fixedPieces) {
     printSolution(choices, solution);
   });
 
-  // console.log(solutions.length);
 }
 
-// main();
 
 self.onmessage = function (e) {
   if (e.data.command === 'START') {
@@ -389,7 +372,7 @@ self.onmessage = function (e) {
 
     solveDlx(e.data.data);
   } else if (e.data.command === 'STOP') {
-    // Worker'ı durdur
+    console.log('Worker stopped');
     running = false;
     self.close();
   }

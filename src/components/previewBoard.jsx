@@ -15,7 +15,7 @@ const GridComponentBase = ({ data, colors }) => {
             return (
               <div
                 key={colIndex}
-                className={`w-3 h-3 ${colorClass} border-1 border-white border-opacity-20`}
+                className={`w-4 h-4 ${colorClass} border-1 border-white border-opacity-20`}
               ></div>
             );
           })}
