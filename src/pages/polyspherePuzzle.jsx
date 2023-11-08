@@ -297,7 +297,11 @@ function Square({
 
       //if newBoardState does not have null, show congrats toast
       if (!newBoardState.includes(null)) {
-        toast.success('Congratulations! You solved the puzzle.');
+        toast.success("Awesome work! You've solved the puzzle. Celebrate your victory! 🎉🏆"
+        , {
+          duration: 5000,
+        },
+        );
       }
     },
 
