@@ -359,14 +359,14 @@ function Square({
   return (
     <div
       ref={ref}
-      className={`w-12 h-12 border-r border-t border-gray-400 flex justify-center items-center ${
+      className={`w-12 h-12 border-r border-t border-white flex justify-center items-center ${
         highlightedSquares.includes(index) ? `bg-opacity-50 ${highlightColor}` : ''
       }`}
       style={{
         position: 'relative',
         zIndex: 1,
         transform: 'translate(0,0)',
-        border: '2px solid rgba(255, 255, 255, 0.2)',
+        border: '2px solid rgba(255, 255, 255, 0.4)',
       }}
       onClick={() => {
         console.log(getRowAndColFromIndex(index));
@@ -415,7 +415,7 @@ function Board({ onDropPiece, highlightedSquares, setHighlightedSquares, pieces,
     <div
       className="grid grid-cols-11 w-full h-full border-l border-b border-gray-400"
       style={{
-        border: '2px solid rgba(255, 255, 255, 0.2)',
+        border: '2px solid rgba(255, 255, 255, 0.4)',
       }}
     >
       {boardState.map((piece, index) => (
@@ -646,7 +646,17 @@ function PolyspherePuzzle() {
           )}
         </div>
 
-        <div id="board" className="z-10">
+        <div id="board" className="z-10"
+        style={{
+          padding: 30,
+          background: 'rgba(255, 255, 255, 0.2)', // White background with transparency
+          borderRadius: '16px', // Rounded corners
+          border: '1px solid rgba(255, 255, 255, 0.2)', // Light border for glass effect
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Soft shadow for depth
+          backdropFilter: 'blur(10px)', // Blur effect for the glassmorphism
+          WebkitBackdropFilter: 'blur(10px)' // For Safari compatibility
+        }}
+        >
           <Board
             onDropPiece={handleDropPiece}
             highlightedSquares={highlightedSquares}
