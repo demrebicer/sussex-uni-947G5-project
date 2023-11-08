@@ -1,0 +1,30 @@
+/* Tour buton ve diğer kontrollerin rengini özelleştir */
+.reactour-accent {
+    color: #5cb7b7; /* Accent rengini seçin */
+  }
+  
+  /* Tooltip konteynerinin stilini özelleştir */
+  .reactour__helper {
+    border-radius: 5px !important;
+    /* padding: 15px !important; */
+    box-shadow: 0 0.5em 3em rgba(0,0,0,0.3) !important;
+    background-color: #fff !important;
+    color: #333 !important;
+  }
+  
+  /* Maskelenmiş alanın (vurgulanan alan dışındaki kısım) stilini özelleştir */
+  .reactour__mask {
+    fill: rgba(255, 255, 255, 0.75) !important; /* Arka planın opaklığını ayarlayın */
+  }
+  
+  /* Vurgulanan alanın sınırını özelleştir */
+  .reactour__mask__area {
+    stroke: #c0c0c0 !important; /* Sınır rengini belirleyin */
+    stroke-width: 2 !important;
+  }
+  
+  /* İşaretçinin (tooltip okunun) stilini özelleştir */
+  .reactour__arrow {
+    color: #5cb7b7; /* İşaretçinin rengini belirleyin */
+  }
+  

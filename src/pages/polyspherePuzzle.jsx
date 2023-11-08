@@ -8,6 +8,8 @@ import GridComponent from '../components/previewBoard';
 import { Spinner, Button } from '@nextui-org/react';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import Tour from 'reactour';
+import '../styles/reactour.css';
 
 import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import Grid from 'react-virtualized/dist/commonjs/Grid';
@@ -292,6 +294,11 @@ function Square({
 
       setBoardState(newBoardState);
       onDropPiece(item.id, true);
+
+      //if newBoardState does not have null, show congrats toast
+      if (!newBoardState.includes(null)) {
+        toast.success('Congratulations! You solved the puzzle.');
+      }
     },
 
     hover: (item, monitor) => {
@@ -439,6 +446,7 @@ function PolyspherePuzzle() {
   const [solutions, setSolutions] = useState([]);
   const [isWorkerStart, setIsWorkerStart] = useState(false);
   const [isWorkerTerminated, setIsWorkerTerminated] = useState(false);
+  const [isTourOpen, setIsTourOpen] = useState(true);
 
   const navigate = useNavigate();
 
@@ -618,7 +626,7 @@ function PolyspherePuzzle() {
               <div key={piece.id} className="mt-2 p-1">
                 <Piece id={piece.id} color={piece.color} shape={piece.shape} setHighlightedSquares={setHighlightedSquares} />
 
-                <div className="flex justify-center items-center gap-3 ">
+                <div id="rotate-and-flip" className="flex justify-center items-center gap-3 ">
                   <button
                     className="border-2 border-white text-white hover:bg-white hover:text-gray-700 rounded-full w-8 h-8 flex justify-center items-center"
                     onClick={() => handleRotate(piece.id)}
@@ -638,7 +646,7 @@ function PolyspherePuzzle() {
           )}
         </div>
 
-        <div className="z-10">
+        <div id="board" className="z-10">
           <Board
             onDropPiece={handleDropPiece}
             highlightedSquares={highlightedSquares}
@@ -654,6 +662,7 @@ function PolyspherePuzzle() {
           {isWorkerTerminated == false ? (
             <div className="flex justify-center items-center space-x-4">
               <button
+                id="start-solution-finder"
                 className="w-52 h-12 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
                 onClick={() => {
                   handleStart();
@@ -663,6 +672,7 @@ function PolyspherePuzzle() {
               </button>
 
               <button
+                id="stop-solution-finder"
                 className="w-52 h-12 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
                 onClick={() => {
                   handleStop();
@@ -739,8 +749,44 @@ function PolyspherePuzzle() {
           </Button>
         </div>
       </div>
+      <Tour
+        steps={steps}
+        isOpen={isTourOpen}
+        onRequestClose={() => {
+          setIsTourOpen(false);
+        }}
+        // accentColor="rgb(64,54,103,0.6)"
+      />
     </DndProvider>
   );
 }
+
+const steps = [
+  {
+    selector: '.first-step',
+    content: "Welcome to Polysphere Puzzle Solver! 🌐 Excited to solve puzzles? Let's get started! 🧩 ✨",
+  },
+  {
+    selector: '#rotate-and-flip',
+    content: "Rotate or flip pieces to fit them on the board. It's your turn to shine, puzzle master! 🔄 🧩",
+  }, 
+  {
+    selector: '#board',
+    content: 'Drag & drop pieces onto the board, or remove them by dropping outside. Simple and slick! 🖱️ 🧩 ➡️ ❌',
+  },
+  {
+    selector: '#start-solution-finder',
+    content: 'Tired of guessing? Launch the solution finder and let the magic happen! ✨ 🚀',
+  },
+  {
+    selector: '#stop-solution-finder',
+    content: "Need a break? You can stop the solution finder anytime—just hit 'stop'. 🛑✋",
+  },
+  {
+    selector: '.sixth-step',
+    content: "You're all set! Embark on your puzzle-solving adventure. 🎮 🌟",
+  },
+];
+
 
 export default PolyspherePuzzle;
