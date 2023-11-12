@@ -359,9 +359,12 @@ function solveDlx(fixedPieces) {
   const solutions = [];
   recurse(matrix, rows, columns, solutions, [], choices, fixedPieces);
 
-  solutions.forEach((solution) => {
-    printSolution(choices, solution);
-  });
+  // solutions.forEach((solution) => {
+  //   printSolution(choices, solution);
+  // });
+
+  self.postMessage({ type: 'FINISHED' });
+
 
 }
 
