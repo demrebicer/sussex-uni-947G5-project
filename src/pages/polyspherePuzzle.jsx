@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { FiRotateCw } from 'react-icons/fi';
 import { LuFlipHorizontal } from 'react-icons/lu';
-import { toast } from 'react-hot-toast';
 import GridComponent from '../components/previewBoard';
 import { Spinner, Button } from '@nextui-org/react';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import Tour from 'reactour';
 import '../styles/reactour.css';
+import Board from '../components/board';
+import Piece from '../components/piece';
 
 import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import Grid from 'react-virtualized/dist/commonjs/Grid';
@@ -172,278 +173,7 @@ const colors = {
   12: 'bg-cyan-400',
 };
 
-function Piece({ id, color, shape, setHighlightedSquares }) {
-  const [draggingIndex, setDraggingIndex] = useState({ row: 0, col: 0 });
-
-  const [{ isDragging }, ref] = useDrag({
-    type: 'PIECE',
-    item: { id, draggingIndex },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-    end: () => {
-      setHighlightedSquares((prev) => []);
-    },
-  });
-
-  const maxCol = Math.max(...shape.map((cell) => cell.col));
-  const maxRow = Math.max(...shape.map((cell) => cell.row));
-
-  return (
-    <div
-      ref={ref}
-      className={`relative ${isDragging ? 'opacity-0' : 'opacity-100'} m-2.5 cursor-pointer`}
-      style={{
-        width: `${(maxCol + 1) * 48}px`,
-        height: `${(maxRow + 1) * 48}px`,
-        transform: 'translate(0,0)',
-      }}
-    >
-      {shape.map((cell) => (
-        <div
-          key={`${cell.row}-${cell.col}`}
-          className={`absolute w-12 h-12 ${color}`}
-          style={{
-            left: `${cell.col * 48}px`,
-            top: `${cell.row * 48}px`,
-
-            borderTop: '3px solid rgba(255, 255, 255, 0.1)',
-            borderLeft: '3px solid rgba(255, 255, 255, 0.1)',
-            borderBottom: '3px solid rgba(0, 0, 0, 0.1)',
-            borderRight: '3px solid rgba(0, 0, 0, 0.1)',
-            borderRadius: '4px 4px',
-          }}
-          onClick={() => console.log(shape)}
-          onMouseDown={(e) => setDraggingIndex({ row: cell.row, col: cell.col })}
-        >
-          <div
-            className="topleft-circle"
-            style={{
-              position: 'absolute',
-              zIndex: 10,
-              width: '8px',
-              height: '8px',
-              left: '0px',
-              top: '0px',
-              backgroundColor: 'rgba(255, 255, 255, 0.25)',
-              borderRadius: '4px 4px',
-            }}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function Square({
-  onDropPiece,
-  pieces,
-  index,
-  highlightedSquares,
-  setHighlightedSquares,
-  boardState,
-  setBoardState,
-  highlightColor,
-  setHighlightColor,
-  canPlacePiece,
-}) {
-  function getRowAndColFromIndex(index) {
-    const row = Math.floor(index / 11);
-    const col = index % 11;
-    return { row, col };
-  }
-
-  useEffect(() => {
-    return () => {
-      setHighlightedSquares([]);
-    };
-  }, [index]);
-
-  const [, dropRef] = useDrop({
-    accept: 'PIECE',
-    drop: (item) => {
-      const itemShape = pieces.find((piece) => piece.id === item.id).shape;
-      const { row: squareRow, col: squareCol } = getRowAndColFromIndex(index);
-
-      let offsetRow, offsetCol;
-      if (item.draggingIndex) {
-        const { row: draggingRowIndex, col: draggingColIndex } = item.draggingIndex;
-        offsetRow = draggingRowIndex;
-        offsetCol = draggingColIndex;
-      } else {
-        const { row: itemRow, col: itemCol } = itemShape[0];
-        offsetRow = itemRow;
-        offsetCol = itemCol;
-      }
-
-      if (!canPlacePiece(itemShape, squareRow - offsetRow, squareCol - offsetCol, item.id)) {
-        return;
-      }
-
-      const squaresToUpdate = itemShape.map((cell) => {
-        const { row: cellRow, col: cellCol } = cell;
-        return (squareRow + cellRow - offsetRow) * 11 + squareCol + cellCol - offsetCol;
-      });
-
-      const cleanedBoardState = boardState.map((pieceId) => (pieceId === item.id ? null : pieceId));
-
-      const newBoardState = [...cleanedBoardState];
-      squaresToUpdate.forEach((squareIndex) => {
-        newBoardState[squareIndex] = item.id;
-      });
-
-      setBoardState(newBoardState);
-      onDropPiece(item.id, true);
-
-      //if newBoardState does not have null, show congrats toast
-      if (!newBoardState.includes(null)) {
-        toast.success("Awesome work! You've solved the puzzle. Celebrate your victory! 🎉🏆"
-        , {
-          duration: 5000,
-        },
-        );
-      }
-    },
-
-    hover: (item, monitor) => {
-      const itemShape = pieces.find((piece) => piece.id === item.id).shape;
-      const color = pieces.find((piece) => piece.id === item.id).color;
-
-      setHighlightColor(color);
-
-      if (!monitor.canDrop()) return;
-
-      const { row: squareRow, col: squareCol } = getRowAndColFromIndex(index);
-
-      let offsetRow, offsetCol;
-      if (item.draggingIndex) {
-        const { row: draggingRowIndex, col: draggingColIndex } = item.draggingIndex;
-        offsetRow = draggingRowIndex;
-        offsetCol = draggingColIndex;
-      } else {
-        const { row: itemRow, col: itemCol } = itemShape[0];
-        offsetRow = itemRow;
-        offsetCol = itemCol;
-      }
-
-      const newHighlightedSquares = itemShape.map((cell) => {
-        const { row: cellRow, col: cellCol } = cell;
-        return (squareRow + cellRow - offsetRow) * 11 + squareCol + cellCol - offsetCol;
-      });
-
-      if (!canPlacePiece(itemShape, squareRow - offsetRow, squareCol - offsetCol, item.id)) {
-        return;
-      }
-
-      if (JSON.stringify(highlightedSquares) !== JSON.stringify(newHighlightedSquares)) {
-        setHighlightedSquares(newHighlightedSquares);
-      }
-    },
-  });
-
-  const [, dragRef] = useDrag({
-    type: 'PIECE',
-    item: { id: boardState[index] },
-    end: (item, monitor) => {
-      if (!monitor.didDrop()) {
-        const pieceToRemove = item.id;
-        const newBoardState = boardState.map((pieceId) => (pieceId === pieceToRemove ? null : pieceId));
-        setBoardState(newBoardState);
-        onDropPiece(item.id, false);
-        setHighlightedSquares([]);
-      }
-    },
-  });
-
-  const ref = (node) => {
-    dropRef(node);
-    if (boardState[index]) dragRef(node);
-  };
-
-  return (
-    <div
-      ref={ref}
-      className={`w-12 h-12 border-r border-t border-white flex justify-center items-center ${
-        highlightedSquares.includes(index) ? `bg-opacity-50 ${highlightColor}` : ''
-      }`}
-      style={{
-        position: 'relative',
-        zIndex: 1,
-        transform: 'translate(0,0)',
-        border: '2px solid rgba(255, 255, 255, 0.4)',
-      }}
-      onClick={() => {
-        console.log(getRowAndColFromIndex(index));
-      }}
-    >
-      {boardState[index] && (
-        <div
-          className={`w-full h-full ${colors[boardState[index]]}`}
-          style={{
-            height: '3rem',
-            width: '3rem',
-            position: 'absolute',
-            top: '-2px',
-            left: '-2px',
-            zIndex: 2,
-            borderTop: '3px solid rgba(255, 255, 255, 0.1)',
-            borderLeft: '3px solid rgba(255, 255, 255, 0.1)',
-            borderBottom: '3px solid rgba(0, 0, 0, 0.1)',
-            borderRight: '3px solid rgba(0, 0, 0, 0.1)',
-            borderRadius: '4px 4px',
-          }}
-        >
-          <div
-            className="topleft-circle"
-            style={{
-              position: 'absolute',
-              zIndex: 10,
-              width: '8px',
-              height: '8px',
-              left: '0px',
-              top: '0px',
-              backgroundColor: 'rgba(255, 255, 255, 0.25)',
-              borderRadius: '4px 4px',
-            }}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Board({ onDropPiece, highlightedSquares, setHighlightedSquares, pieces, boardState, setBoardState, canPlacePiece }) {
-  const [highlightColor, setHighlightColor] = useState('bg-yellow-300');
-
-  return (
-    <div
-      className="grid grid-cols-11 w-full h-full border-l border-b border-gray-400"
-      style={{
-        border: '2px solid rgba(255, 255, 255, 0.4)',
-      }}
-    >
-      {boardState.map((piece, index) => (
-        <Square
-          key={index}
-          pieces={pieces}
-          onDropPiece={onDropPiece}
-          index={index}
-          highlightedSquares={highlightedSquares}
-          setHighlightedSquares={setHighlightedSquares}
-          boardState={boardState}
-          setBoardState={setBoardState}
-          highlightColor={highlightColor}
-          setHighlightColor={setHighlightColor}
-          canPlacePiece={canPlacePiece}
-        />
-      ))}
-    </div>
-  );
-}
-
 function PolyspherePuzzle() {
-  // console.log('MyComponent is rendering!');
-
   const [boardState, setBoardState] = useState(Array(5 * 11).fill(null));
   const [pieces, setPieces] = useState(initialPieces);
   const [highlightedSquares, setHighlightedSquares] = useState([]);
@@ -466,45 +196,27 @@ function PolyspherePuzzle() {
   useEffect(() => {
     const newWorker = new Worker('worker.js');
     setWorker(newWorker);
-
-    // newWorker.onmessage = (e) => {
-    //   if (e.data.type === 'SOLUTION') {
-    //     // console.log("Veri geldi")
-    //     setSolutions((prevSolutions) => [...prevSolutions, e.data.data]);
-    //   }
-    // };
-
-    // return () => newWorker.terminate();
   }, []);
 
   useEffect(() => {
-    let solutionsNew = []
+    let solutionsNew = [];
 
     if (worker) {
       worker.onmessage = (e) => {
         if (e.data.type === 'SOLUTION') {
-          // console.log("Veri geldi")
-          // setSolutions((prevSolutions) => [...prevSolutions, e.data.data]);
+          solutionsNew.push(e.data.data);
 
-          solutionsNew.push(e.data.data)
-
-          setSolutionsCount(prev => prev + 1)
+          setSolutionsCount((prev) => prev + 1);
 
           if (isInit == true) {
             setSolutions(solutionsNew);
             isInit = false;
           }
-
-          // console.log(solutionsNew)
-
-  
-          // console.log(solutionsNew.length)
-        } else if (e.data.type === "FINISHED"){
-          console.log("Finished")
+        } else if (e.data.type === 'FINISHED') {
+          console.log('Finished');
           handleStop();
         }
       };
-
 
       const interval = setInterval(() => {
         setSolutions(solutionsNew);
@@ -538,7 +250,7 @@ function PolyspherePuzzle() {
 
   const handleDropPiece = (id, isOnBoard) => {
     setPieces((prev) => prev.map((piece) => (piece.id === id ? { ...piece, isOnBoard } : piece)));
-    console.log(`Parça ${id} tahtaya bırakıldı.`);
+    // console.log(`Parça ${id} tahtaya bırakıldı.`);
   };
 
   const handleRotate = (id) => {
@@ -683,16 +395,18 @@ function PolyspherePuzzle() {
           )}
         </div>
 
-        <div id="board" className="z-10"
-        style={{
-          padding: 30,
-          background: 'rgba(255, 255, 255, 0.2)', // White background with transparency
-          borderRadius: '16px', // Rounded corners
-          border: '1px solid rgba(255, 255, 255, 0.2)', // Light border for glass effect
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Soft shadow for depth
-          backdropFilter: 'blur(10px)', // Blur effect for the glassmorphism
-          WebkitBackdropFilter: 'blur(10px)' // For Safari compatibility
-        }}
+        <div
+          id="board"
+          className="z-10"
+          style={{
+            padding: 30,
+            background: 'rgba(255, 255, 255, 0.2)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+          }}
         >
           <Board
             onDropPiece={handleDropPiece}
@@ -802,7 +516,6 @@ function PolyspherePuzzle() {
         onRequestClose={() => {
           setIsTourOpen(false);
         }}
-        // accentColor="rgb(64,54,103,0.6)"
       />
     </DndProvider>
   );
@@ -816,7 +529,7 @@ const steps = [
   {
     selector: '#rotate-and-flip',
     content: "Rotate or flip pieces to fit them on the board. It's your turn to shine, puzzle master! 🔄 🧩",
-  }, 
+  },
   {
     selector: '#board',
     content: 'Drag & drop pieces onto the board, or remove them by dropping outside. Simple and slick! 🖱️ 🧩 ➡️ ❌',
@@ -834,6 +547,5 @@ const steps = [
     content: "You're all set! Embark on your puzzle-solving adventure. 🎮 🌟",
   },
 ];
-
 
 export default PolyspherePuzzle;
