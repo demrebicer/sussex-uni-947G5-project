@@ -442,6 +442,8 @@ function Board({ onDropPiece, highlightedSquares, setHighlightedSquares, pieces,
 }
 
 function PolyspherePuzzle() {
+  // console.log('MyComponent is rendering!');
+
   const [boardState, setBoardState] = useState(Array(5 * 11).fill(null));
   const [pieces, setPieces] = useState(initialPieces);
   const [highlightedSquares, setHighlightedSquares] = useState([]);
@@ -451,6 +453,9 @@ function PolyspherePuzzle() {
   const [isWorkerStart, setIsWorkerStart] = useState(false);
   const [isWorkerTerminated, setIsWorkerTerminated] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(true);
+
+  const [solutionsCount, setSolutionsCount] = useState(0);
+  let isInit = true;
 
   const navigate = useNavigate();
 
@@ -473,15 +478,42 @@ function PolyspherePuzzle() {
   }, []);
 
   useEffect(() => {
+    let solutionsNew = []
+
     if (worker) {
       worker.onmessage = (e) => {
         if (e.data.type === 'SOLUTION') {
           // console.log("Veri geldi")
-          setSolutions((prevSolutions) => [...prevSolutions, e.data.data]);
+          // setSolutions((prevSolutions) => [...prevSolutions, e.data.data]);
+
+          solutionsNew.push(e.data.data)
+
+          setSolutionsCount(prev => prev + 1)
+
+          if (isInit == true) {
+            setSolutions(solutionsNew);
+            isInit = false;
+          }
+
+          // console.log(solutionsNew)
+
+  
+          // console.log(solutionsNew.length)
+        } else if (e.data.type === "FINISHED"){
+          console.log("Finished")
+          handleStop();
         }
       };
 
-      return () => worker.terminate();
+
+      const interval = setInterval(() => {
+        setSolutions(solutionsNew);
+      }, 3000);
+
+      return () => {
+        worker.terminate();
+        clearInterval(interval);
+      };
     }
   }, [worker]);
 
@@ -609,6 +641,7 @@ function PolyspherePuzzle() {
     setBoardState(Array(5 * 11).fill(null));
     setPieces(initialPieces);
     setSolutions([]);
+    setSolutionsCount(0);
     setIsWorkerStart(false);
     setIsWorkerTerminated(false);
     setWorker(new Worker('worker.js'));
@@ -708,7 +741,7 @@ function PolyspherePuzzle() {
             </button>
           ) : null}
 
-          <span className="text-white font-bold">{solutions.length} solutions found</span>
+          <span className="text-white font-bold">{solutionsCount} solutions found</span>
         </div>
 
         <div className="text-xl font-bold p-4 mt-8" style={{ display: solutions.length <= 0 ? 'none' : 'flex' }}>
