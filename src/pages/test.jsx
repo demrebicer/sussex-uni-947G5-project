@@ -4,46 +4,46 @@ import { Sphere, OrbitControls, Sky } from '@react-three/drei';
 import { FaCompress, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { Spinner, Button } from '@nextui-org/react';
 
-// const pyramidData = [
-//   [['b']],
-//   [
-//     ['b', 'y'],
-//     ['r', 'b'],
-//   ],
-//   [
-//     ['b', 'o', 'y'],
-//     ['o', 'r', 'l'],
-//     ['r', 'l', 'b'],
-//   ],
-//   [
-//     ['B', 'B', 'B', 'y'],
-//     ['B', 'o', 'y', 'l'],
-//     ['o', 'g', 'l', 'g'],
-//     ['r', 'g', 'g', 'g'],
-//   ],
+const pyramidData = [
+  [['b']],
+  [
+    ['b', 'y'],
+    ['r', 'b'],
+  ],
+  [
+    ['b', 'o', 'y'],
+    ['o', 'r', 'l'],
+    ['r', 'l', 'b'],
+  ],
+  [
+    ['B', 'B', 'B', 'y'],
+    ['B', 'o', 'y', 'l'],
+    ['o', 'g', 'l', 'g'],
+    ['r', 'g', 'g', 'g'],
+  ],
 
-//   [
-//     ['g', 'g', 'g', 'p', 'y'],
-//     ['c', 'g', 'o', 'p', 'p'],
-//     ['c', 'c', 'v', 'l', 'p'],
-//     ['R', 'R', 'v', 'v', 'p'],
-//     ['r', 'R', 'R', 'v', 'v'],
-//   ],
-// ];
+  [
+    ['g', 'g', 'g', 'p', 'y'],
+    ['c', 'g', 'o', 'p', 'p'],
+    ['c', 'c', 'v', 'l', 'p'],
+    ['R', 'R', 'v', 'v', 'p'],
+    ['r', 'R', 'R', 'v', 'v'],
+  ],
+];
 
 const colors = {
-  G: '#00FF00', // Parlak Yeşil
-  p: '#800080', // Parlak Mor
-  y: '#FFFF00', // Parlak Sarı
-  c: '#00FFFF', // Parlak Camgöbeği
-  o: '#FFA500', // Parlak Turuncu
-  v: '#EE82EE', // Parlak Menekşe
-  R: '#FF0000', // Parlak Kırmızı
-  r: '#FF1493', // Parlak Pembe
-  B: '#0000FF', // Parlak Mavi
-  b: '#A52A2A', // Parlak Kahverengi
-  l: '#00FF00', // Parlak Yeşil (Lime)
-  g: '#FFD700', // Parlak Altın
+  G: '#2563eb',
+  p: '#db2777',
+  y: '#fde047',
+  c: '#fbbf24',
+  o: '#f472b6',
+  v: '#22d3ee',
+  R: '#7e22ce',
+  r: '#16a34a',
+  B: '#4ade80',
+  b: '#ea580c',
+  l: '#c084fc',
+  g: '#ef4444',
 };
 
 function Pyramid({ spacingY, pyramidData }) {
@@ -73,6 +73,44 @@ function Pyramid({ spacingY, pyramidData }) {
         spheres.push(
           <Sphere position={[x, y, z]} args={[sphereRadius, 16, 16]} key={`${layerIndex}-${rowIndex}-${letterIndex}`}>
             <meshStandardMaterial color={color} />
+          </Sphere>
+        );
+      });
+    });
+  });
+
+  return <>{spheres}</>;
+}
+
+//This is for only waiting for solution. Just create 5x5 pyramid you don't have to use real data
+function PyramidSkeleton() {
+  const spheres = [];
+  const totalHeight = 5;
+  const sphereRadius = 0.6; // Kürelerin yarıçapını biraz artırdım
+  let spacing = 1.2; // Küreler arası boşluğu azalttım
+  let spacingY = 1; // Küreler arası boşluğu azalttım
+
+  pyramidData.forEach((layer, layerIndex) => {
+    const layerSize = layer.length;
+    layer.forEach((row, rowIndex) => {
+      row.forEach((letter, letterIndex) => {
+        // const x = (letterIndex - row.length / 2) * spacing;
+        // // Yüksekliği katman sayısına göre ayarla
+        // const y = (totalHeight - layerIndex - 1) * spacing * 0.5;
+        // const z = (rowIndex - row.length / 2) * spacing;
+
+        const x = (letterIndex - row.length / 2) * spacing * 0.95;
+        // Yüksekliği katman sayısına göre ayarla
+        const y = (totalHeight - layerIndex - 1) * spacingY;
+        const z = (rowIndex - row.length / 2) * spacing * 0.95;
+        const color = colors[letter];
+
+        spheres.push(
+          <Sphere 
+          //wireframe
+          
+          position={[x, y, z]} args={[sphereRadius, 16, 16]} key={`${layerIndex}-${rowIndex}-${letterIndex}`}>
+            <meshStandardMaterial />
           </Sphere>
         );
       });
@@ -166,17 +204,25 @@ export default function App() {
   //   setWorker(new Worker('worker.js'));
   // }
 
+  const handleResetAndStartOver = () => {
+    setSolutions([]);
+    setSolutionsCount(0);
+    setIsWorkerStart(false);
+    setIsWorkerTerminated(false);
+    setWorker(new Worker('solver3d.js'));
+  };
+
   const handleNext = () => {
     if (currentPage < solutionsCount) {
       setCurrentPage((prev) => prev + 1);
     }
-  }
+  };
 
   const handlePrev = () => {
     if (currentPage > 1) {
       setCurrentPage((prev) => prev - 1);
     }
-  }
+  };
 
   return (
     <div style={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -258,9 +304,10 @@ export default function App() {
       </div>
 
       <Canvas style={{ height: '100%', width: '100%' }} camera={{ position: [6, 3, 5], fov: 75 }}>
-        <ambientLight intensity={0.5} />
+        <ambientLight intensity={0.8} />
         <pointLight position={[10, 10, 10]} />
-        {solutionsCount > 0 ? <Pyramid spacingY={spacingY} pyramidData={solutions[currentPage - 1]} /> : null}
+
+        {solutionsCount > 0 ? <Pyramid spacingY={spacingY} pyramidData={solutions[currentPage - 1]} /> : <PyramidSkeleton />}
         {solutionsCount > 0 ? <OrbitControls /> : null}
         <Sky />
       </Canvas>
