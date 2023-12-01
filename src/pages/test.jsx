@@ -1,153 +1,269 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Sphere, Sky, OrbitControls } from '@react-three/drei';
+import { useEffect, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Sphere, OrbitControls, Sky } from '@react-three/drei';
+import { FaCompress, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { Spinner, Button } from '@nextui-org/react';
 
-function generatePyramidPositions(baseSize) {
-  const positions = [];
-  const sphereDiameter = 0.75; // Küre çapı
-  const verticalSpacing = 0.5; // Dikey aralık, küre yarıçapından biraz fazla
-  for (let level = baseSize; level > 0; level--) {
-    const y = (baseSize - level) * verticalSpacing;
-    const start = (-(level - 1) * sphereDiameter) / 2;
-    for (let x = 0; x < level; x++) {
-      for (let z = 0; z < level; z++) {
-        positions.push([start + x * sphereDiameter, y, start + z * sphereDiameter]);
-      }
-    }
-  }
-  return positions;
-}
+// const pyramidData = [
+//   [['b']],
+//   [
+//     ['b', 'y'],
+//     ['r', 'b'],
+//   ],
+//   [
+//     ['b', 'o', 'y'],
+//     ['o', 'r', 'l'],
+//     ['r', 'l', 'b'],
+//   ],
+//   [
+//     ['B', 'B', 'B', 'y'],
+//     ['B', 'o', 'y', 'l'],
+//     ['o', 'g', 'l', 'g'],
+//     ['r', 'g', 'g', 'g'],
+//   ],
 
-const pyramidPositions = generatePyramidPositions(5);
+//   [
+//     ['g', 'g', 'g', 'p', 'y'],
+//     ['c', 'g', 'o', 'p', 'p'],
+//     ['c', 'c', 'v', 'l', 'p'],
+//     ['R', 'R', 'v', 'v', 'p'],
+//     ['r', 'R', 'R', 'v', 'v'],
+//   ],
+// ];
 
-function SpheresPyramid({ collidingSphere }) {
-  const [sphereStates, setSphereStates] = useState(Array(pyramidPositions.length).fill(false)); // Her kürenin yerleşme durumunu tutan state
+const colors = {
+  G: '#00FF00', // Parlak Yeşil
+  p: '#800080', // Parlak Mor
+  y: '#FFFF00', // Parlak Sarı
+  c: '#00FFFF', // Parlak Camgöbeği
+  o: '#FFA500', // Parlak Turuncu
+  v: '#EE82EE', // Parlak Menekşe
+  R: '#FF0000', // Parlak Kırmızı
+  r: '#FF1493', // Parlak Pembe
+  B: '#0000FF', // Parlak Mavi
+  b: '#A52A2A', // Parlak Kahverengi
+  l: '#00FF00', // Parlak Yeşil (Lime)
+  g: '#FFD700', // Parlak Altın
+};
 
-  const changeSphereState = (index) => {
-    setSphereStates((prevStates) => {
-      const newStates = [...prevStates];
-      newStates[index] = true; // Belirtilen index'teki kürenin durumunu güncelle
-      return newStates;
-    });
-  };
+function Pyramid({ spacingY, pyramidData }) {
+  const spheres = [];
+  const totalHeight = pyramidData.length;
+  const sphereRadius = 0.6; // Kürelerin yarıçapını biraz artırdım
+  let spacing = 1.2; // Küreler arası boşluğu azalttım
+  // let spacingY = 1; // Küreler arası boşluğu azalttım
 
-  useEffect(() => {
-    if (collidingSphere !== null) {
-      changeSphereState(collidingSphere);
-    } else {
-      // Çakışma yoksa, tüm kürelerin durumunu sıfırla
-      setSphereStates(Array(pyramidPositions.length).fill(false));
-    }
-  }, [collidingSphere]);
+  console.log('spacingY', spacingY);
 
-  return (
-    <>
-      {pyramidPositions.map((pos, index) => (
-        <Sphere
-          key={index}
-          position={pos}
-          args={[0.4, 16, 16]}
-          material-transparent
-          material-opacity={0.5}
-          material-color={sphereStates[index] ? 'green' : 'blue'}
-          material-wireframe={collidingSphere === index}
-        />
-      ))}
-    </>
-  );
-}
+  pyramidData.forEach((layer, layerIndex) => {
+    const layerSize = layer.length;
+    layer.forEach((row, rowIndex) => {
+      row.forEach((letter, letterIndex) => {
+        // const x = (letterIndex - row.length / 2) * spacing;
+        // // Yüksekliği katman sayısına göre ayarla
+        // const y = (totalHeight - layerIndex - 1) * spacing * 0.5;
+        // const z = (rowIndex - row.length / 2) * spacing;
 
-function MovableSphere({ onCollision }) {
-  const sphereRef = useRef();
-  const [position, setPosition] = useState([2, 0, 0]);
-  const [selected, setSelected] = useState(false);
-  const speed = 0.1;
+        const x = (letterIndex - row.length / 2) * spacing * 0.95;
+        // Yüksekliği katman sayısına göre ayarla
+        const y = (totalHeight - layerIndex - 1) * spacingY;
+        const z = (rowIndex - row.length / 2) * spacing * 0.95;
+        const color = colors[letter];
 
-  const randomColor = `rgb(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)})`;
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (!selected) return;
-
-      switch (event.key) {
-        case 'ArrowUp':
-          setPosition((prev) => [prev[0], prev[1], prev[2] - speed]);
-          break;
-        case 'ArrowDown':
-          setPosition((prev) => [prev[0], prev[1], prev[2] + speed]);
-          break;
-        case 'ArrowLeft':
-          setPosition((prev) => [prev[0] - speed, prev[1], prev[2]]);
-          break;
-        case 'ArrowRight':
-          setPosition((prev) => [prev[0] + speed, prev[1], prev[2]]);
-          break;
-        default:
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selected, speed]);
-
-  useFrame(() => {
-    if (sphereRef.current) {
-      sphereRef.current.position.set(...position);
-
-      let isColliding = false;
-      const movableSphereRadius = 0.4; // Hareket eden kürenin yarıçapı
-      pyramidPositions.forEach((pyramidPos, index) => {
-        const distance = Math.sqrt(
-          Math.pow(pyramidPos[0] - position[0], 2) + Math.pow(pyramidPos[1] - position[1], 2) + Math.pow(pyramidPos[2] - position[2], 2)
+        spheres.push(
+          <Sphere position={[x, y, z]} args={[sphereRadius, 16, 16]} key={`${layerIndex}-${rowIndex}-${letterIndex}`}>
+            <meshStandardMaterial color={color} />
+          </Sphere>
         );
-
-        // Tam olarak üst üste gelme kontrolü
-        if (Math.abs(distance) < movableSphereRadius * 0.1) {
-          // Yarıçapın %10'luk bir tolerans ile tam üst üste gelme
-          onCollision(index);
-          isColliding = true;
-        }
       });
-
-      if (!isColliding) {
-        onCollision(null);
-      }
-    }
+    });
   });
 
-  return (
-    <Sphere
-      ref={sphereRef}
-      args={[0.4, 16, 16]}
-      position={position}
-      onClick={() => setSelected(!selected)}
-      material-transparent
-      material-opacity={0.5}
-      material-color={selected ? 'yellow' : randomColor}
-      material-wireframe={selected}
-    />
-  );
+  return <>{spheres}</>;
 }
 
-function Scene() {
-  const [collidingSphere, setCollidingSphere] = useState(null);
+export default function App() {
+  const [isSpacingY, setIsSpacingY] = useState(false);
+  const [spacingY, setSpacingY] = useState(1);
+
+  const [worker, setWorker] = useState(null);
+  const [solutions, setSolutions] = useState([]);
+  const [isWorkerStart, setIsWorkerStart] = useState(false);
+  const [isWorkerTerminated, setIsWorkerTerminated] = useState(false);
+  const [solutionsCount, setSolutionsCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  let isInit = true;
+
+  useEffect(() => {
+    const newWorker = new Worker('solver3d.js');
+    setWorker(newWorker);
+  }, []);
+
+  useEffect(() => {
+    let solutionsNew = [];
+
+    if (worker) {
+      worker.onmessage = (e) => {
+        if (e.data.type === 'SOLUTION') {
+          console.log('Solution', e.data.data);
+          const reversedSolution = e.data.data.reverse();
+          solutionsNew.push(reversedSolution);
+
+          setSolutionsCount((prev) => prev + 1);
+
+          if (isInit == true) {
+            setSolutions(solutionsNew);
+            isInit = false;
+          }
+        } else if (e.data.type === 'FINISHED') {
+          console.log('Finished');
+          handleStop();
+        }
+      };
+
+      const interval = setInterval(() => {
+        setSolutions(solutionsNew);
+      }, 3000);
+
+      return () => {
+        worker.terminate();
+        clearInterval(interval);
+      };
+    }
+  }, [worker]);
+
+  useEffect(() => {
+    console.log('spacingY', spacingY);
+    if (isSpacingY === true) {
+      setSpacingY(2);
+    } else {
+      setSpacingY(1);
+    }
+  }, [isSpacingY]);
+
+  const handleStart = () => {
+    // setPieces((prevPieces) => prevPieces.map((piece) => ({ ...piece, isOnBoard: true })));
+    setIsWorkerStart(true);
+    // worker.postMessage({ command: 'START', data: { solutions } });
+    worker.postMessage({ command: 'START' });
+  };
+
+  const handleStop = () => {
+    worker.postMessage({ command: 'STOP' });
+
+    setIsWorkerTerminated(true);
+
+    worker.terminate();
+  };
+
+  // function handleResetAndStartOver() {
+  //   setBoardState(Array(5 * 11).fill(null));
+  //   setPieces(initialPieces);
+  //   setSolutions([]);
+  //   setSolutionsCount(0);
+  //   setIsWorkerStart(false);
+  //   setIsWorkerTerminated(false);
+  //   setWorker(new Worker('worker.js'));
+  // }
+
+  const handleNext = () => {
+    if (currentPage < solutionsCount) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  }
+
+  const handlePrev = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  }
 
   return (
     <div style={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <Canvas style={{ height: '100%' }}>
+      <button
+        className="absolute top-8 left-8 z-10 p-2 bg-white rounded shadow hover:bg-gray-100 focus:outline-none"
+        onClick={() => {
+          console.log('Tıklandı');
+          setIsSpacingY((prev) => !prev);
+        }}
+      >
+        <FaCompress className="text-2xl" /> {/* İkon boyutu */}
+      </button>
+
+      <div className="absolute bottom-10 z-10 p-3 bg-white rounded-2xl shadow hover:bg-gray-100 focus:outline-none">
+        {isWorkerTerminated == false ? (
+          <div className="flex justify-center items-center space-x-8">
+            <button
+              id="start-solution-finder"
+              className="w-64 h-12 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+              onClick={() => {
+                handleStart();
+              }}
+            >
+              {isWorkerStart == false ? 'Start Solution Finder' : <Spinner size="large" color="white" />}
+            </button>
+
+            <button
+              id="stop-solution-finder"
+              className="w-64 h-12 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+              onClick={() => {
+                handleStop();
+              }}
+            >
+              Stop Solution Finder
+            </button>
+          </div>
+        ) : null}
+
+        {isWorkerTerminated == true ? (
+          <button
+            className="w-52 h-12 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+            onClick={() => {
+              handleResetAndStartOver();
+            }}
+          >
+            Start Over
+          </button>
+        ) : null}
+
+        {solutionsCount > 0 ? (
+          <span className="d-flex justify-center mt-2 xt-black font-bold">
+            {currentPage} / {solutionsCount} Solutions
+          </span>
+        ) : null}
+
+        {solutionsCount > 0 ? (
+          <div className="flex justify-center items-center space-x-8 mt-4">
+            <button
+              id="prev-solution"
+              className="w-32 h-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+              onClick={() => {
+                handlePrev();
+              }}
+            >
+              <FaArrowLeft className="text-2xl" />
+            </button>
+
+            <button
+              id="next-solution"
+              className="w-32 h-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+              onClick={() => {
+                handleNext();
+              }}
+            >
+              <FaArrowRight className="text-2xl" />
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      <Canvas style={{ height: '100%', width: '100%' }} camera={{ position: [6, 3, 5], fov: 75 }}>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
+        {solutionsCount > 0 ? <Pyramid spacingY={spacingY} pyramidData={solutions[currentPage - 1]} /> : null}
+        {solutionsCount > 0 ? <OrbitControls /> : null}
         <Sky />
-        <SpheresPyramid collidingSphere={collidingSphere} />
-        <MovableSphere onCollision={setCollidingSphere} />
-        <OrbitControls />
       </Canvas>
     </div>
   );
 }
-
-export default Scene;
