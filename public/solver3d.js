@@ -1,511 +1,407 @@
 let running = true;
 
-const STONES = {
-  green: [
-    [0, 0],
-    [1, 0],
-    [1, 1],
-    [2, 0],
-  ],
-  pink: [
-    [0, 0],
-    [1, 0],
-    [1, -1],
-    [2, -1],
-    [3, -1],
-  ],
-  yellow: [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [2, 1],
-    [3, 0],
-  ],
-  violet: [
-    [0, 0],
-    [1, 0],
-    [1, -1],
-    [2, -1],
-    [2, -2],
-  ],
-  lightred: [
-    [0, 0],
-    [0, 1],
-    [0, 2],
-    [0, 3],
-    [1, 3],
-  ],
-  red: [
-    [0, 0],
-    [0, 1],
-    [1, 1],
-    [1, 2],
-  ],
-  orange: [
-    [0, 0],
-    [1, 0],
-    [1, 1],
-    [2, 1],
-    [1, 2],
-  ],
-  blue: [
-    [0, 0],
-    [0, 1],
-    [1, 1],
-    [2, 1],
-  ],
-  lightblue: [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [2, 1],
-    [2, 2],
-  ],
-  cyan: [
-    [0, 0],
-    [1, 0],
-    [1, -1],
-  ],
-  lightgreen: [
-    [0, 0],
-    [0, 1],
-    [1, 1],
-    [2, 1],
-    [2, 0],
-  ],
-  lime: [
-    [0, 0],
-    [0, 1],
-    [1, -1],
-    [1, 0],
-    [1, 1],
-  ],
-};
+const pieces_s = `
+..
+ ..
 
-const STONE_SIZES = Object.fromEntries(Object.keys(STONES).map((color) => [color, STONES[color].length]));
+..
+ ..
+  .
 
-const STONE_MARKER = {
-  green: ['🟢', 'g'],
-  pink: ['🟣', 'p'],
-  yellow: ['🟡', 'y'],
-  violet: ['🟪', 'v'],
-  lightred: ['🔴', 'r'],
-  red: ['🔺', 'R'],
-  orange: ['🟠', 'o'],
-  blue: ['🔵', 'B'],
-  lightblue: ['🟦', 'b'],
-  cyan: ['🟦', 'c'],
-  lightgreen: ['🟩', 'g'],
-  lime: ['🟢', 'l'],
-  empty: ['⬜', ' '],
-};
-// const fs = require("fs");
-// const path = require("path");
+...
+. .
 
-class IqSolverBase {
-  // Constructor
-  constructor(file_name_text = 'solution.txt', file_name_color = 'solution-color.txt', print_all_boards = true) {
-    this.file_name_text = file_name_text;
-    this.file_name_color = file_name_color;
-    this.print_all_boards = print_all_boards;
+....
+ .
 
-    this.BASE_WIDTH = 5; // Set this to the desired width
-    this.EMPTY = 'empty'; // Define the empty cell marker
-    this.stone_rotations = {}; // dict[StoneColor, StoneShape3d[]] tipi yorum olarak eklenmiştir.
-    this.stone_directions = {}; // dict[StoneColor, Direction[]] tipi yorum olarak eklenmiştir.
+...
+.
+.
 
-    this.board = this._init_board(); // Board tipi yorum olarak eklenmiştir.
-    this.all_directions = this._init_all_directions(); // Direction[] tipi yorum olarak eklenmiştir.
-    this.found_boards = new Set(); // set[str] tipi yorum olarak eklenmiştir.
-    this.last_board = null; // str | None tipi yorum olarak eklenmiştir.
+....
+.
 
-    this._init_stone_directions();
-  }
+..
+ ...
 
-  test() {
-    // console.log("test");
-    // console.log(this.all_directions);
-  }
+...
+..
 
-  // Metotlar
-  _init_board() {
-    // throw new Error('NotImplementedError');
-    console.log('NotImplementedError');
-  }
+ .
+..
+ ..
 
-  _init_all_directions() {
-    // throw new Error('NotImplementedError');
-    console.log('NotImplementedError');
-  }
+...
+.
 
-  _clone_board(board) {
-    return board.map((level) => level.map((line) => [...line]));
-  }
+ .
+...
 
-  _init_stone_directions() {
-    // 'STONES' ve 'rotate_stone' metodu JavaScript'e uygun şekilde tanımlanmalıdır.
+..
+.
+`
 
-    for (const [color, stone] of Object.entries(STONES)) {
-      const normalized_shapes = new Set();
-      const shapes = [];
-      const directions = [];
-
-      for (const direction of this.all_directions) {
-        const shape = this.rotate_stone(stone, direction);
-        const mins = shape[0].map((_, i) => Math.min(...shape.map((p) => p[i])));
-        const normalized_shape = shape
-          .map((p) => p.map((c, i) => c - mins[i]).join(':'))
-          .sort()
-          .join(',');
-
-        if (!normalized_shapes.has(normalized_shape)) {
-          shapes.push(shape);
-          directions.push(direction);
-          normalized_shapes.add(normalized_shape);
+function makePiece(p) {
+  // make piece (w, d, h, [(z, x, y)]) -- with extra spaces for lattice
+  const rows = p.split('\n');
+  const d = (rows.length - 1) * 2 + 1;
+  let mx = 0;
+  let sparse = [];
+  rows.forEach((r, y) => {
+    for (let x = 0; x < r.length; x++) {
+      if (r[x] === '.') {
+        if (x > mx) {
+          mx = x;
         }
+        sparse.push([0, x * 2, y * 2]);
       }
-
-      this.stone_rotations[color] = shapes;
-      this.stone_directions[color] = directions;
     }
+  });
+  // sparse.sort();
+  sparse = sorted(sparse);
+
+  return [(mx * 2) + 1, d, 1, sparse];
+}
+
+const pieces = pieces_s.slice(1, -1).split('\n\n').map(makePiece);
+
+function rotateRight(p) {
+  const [w, d, h, s] = p;
+  let wo = w;
+  if (wo & 1) {
+    wo -= 1;
+  }
+  let rs = s.map(([z, x, y]) => [z, y, wo - x]);
+  // rs.sort();
+  rs = sorted(rs);
+  return [d, w, h, rs];
+}
+
+
+function rotateXY_Z(b) {
+  // assuming z == 0
+  const [z, x, y] = b;
+  const x2 = Math.floor(x / 2);
+  const y2 = Math.floor(y / 2);
+  const xy = x2 + y2;
+  const z_ = x2 - y2;
+  return [z_, xy, xy];
+}
+
+
+function rotateUp(p) {
+  // rotate 90 degrees around x = y, z = 0
+  const [w, d, h, s] = p;
+  let rs = s.map(b => rotateXY_Z(b)); // _rotate_xy_z fonksiyonunun JavaScript versiyonunu rotateXY_Z olarak varsayıyorum
+  // rs.sort();
+  rs = sorted(rs);
+
+  const minZ = rs[0][0];
+  const minXY = Math.min(...rs.map(([z, x, y]) => x));
+  let xyo = -(minZ & 1);
+  if (minXY + xyo < 0) {
+    xyo += 2;
   }
 
-  _board_to_str(board, marker_index = 0) {
-    const lines = board[0].map(() => []);
+  const rsa = rs.map(([z, x, y]) => [z - minZ, x + xyo, y + xyo]);
+  const maxZ = rs[rs.length - 1][0];
+  const wd = Math.max(...rsa.map(([z, x, y]) => x)) + 1;
 
-    const _map = (color) => STONE_MARKER[color][marker_index]; // 'STONE_MARKER' sözlüğü tanımlanmalıdır.
+  return [wd, wd, maxZ - minZ + 1, rsa];
+}
 
-    board.forEach((level) => {
-      level.forEach((line, y) => {
-        lines[y].push(line.map(_map).join(' '));
-      });
-    });
-
-    return lines.map((line) => line.join('  ')).join('\n');
-  }
-
-  save_board(board) {
-    function convertMatrix(matrix) {
-      return matrix.map((row) => row.map((color) => STONE_MARKER[color][1]));
-    }
-
-    const board_str = this._board_to_str(board);
-    this.found_boards.add(board_str);
-
-    if (this.file_name_color !== null) {
-      // fs.appendFileSync(this.file_name_color, `${board_str}\n\n`, "utf-8");
-    }
-    if (this.file_name_text !== null) {
-      const convertedMatrices = board.map(convertMatrix);
-      console.log(convertedMatrices);
-
-      self.postMessage({ type: 'SOLUTION', data: convertedMatrices });
-
-      // fs.appendFileSync(
-      //   this.file_name_text,
-      //   JSON.stringify(convertedMatrices, null, 2) + ",\n\n",
-      //   "utf-8"
-      // );
-    }
-  }
-
-  // load_board() {
-  //   if (this.file_name_text !== null && fs.existsSync(this.file_name_text)) {
-  //     const fileContent = fs.readFileSync(this.file_name_text, "utf-8");
-  //     const last_boards = fileContent.split("\n\n").filter((board) => board);
-
-  //     if (last_boards.length > 0) {
-  //       this.last_board = last_boards[last_boards.length - 1];
-  //     }
-  //   }
-  // }
-
-  print_board(board = null, no_dups = false) {
-    if (board === null) {
-      board = this.board;
-    }
-    const board_str = this._board_to_str(board);
-
-    if (no_dups && this.found_boards.has(board_str)) {
-      return;
-    }
-
-    console.log(board_str);
-    console.log();
-  }
-
-  transform(p, direction) {
-    // const [level, orientation, rotation] = direction;
-    const level = direction.level;
-    const orientation = direction.orientation;
-    const rotation = direction.rotation;
-
-    let dx, dy;
-
-    if (level === 1) {
-      dx = [orientation === 0 || orientation === 1 ? 0 : -1, orientation === 0 || orientation === 3 ? 0 : -1, level];
-
-      dy = [rotation * (-dx[0] - 1), rotation * (-dx[1] - 1), rotation];
-    } else if (level === 0) {
-      dx = [orientation === 0 ? 1 : orientation === 2 ? -1 : 0, orientation === 1 ? 1 : orientation === 3 ? -1 : 0, 0];
-
-      dy = [-dx[1] * rotation, dx[0] * rotation, 0];
-    } else {
-      // level === -1
-      dx = [orientation === 0 || orientation === 1 ? 1 : 0, orientation === 0 || orientation === 3 ? 1 : 0, level];
-
-      dy = [rotation * (dx[0] - 1), rotation * (dx[1] - 1), rotation];
-    }
-
-    return [p[0] * dx[0] + p[1] * dy[0], p[0] * dx[1] + p[1] * dy[1], p[0] * dx[2] + p[1] * dy[2]];
-  }
-
-  apply_stone(stone, fn) {
-    return stone.map((p) => fn(p));
-  }
-
-  rotate_stone(stone, direction) {
-    return stone.map((p) => this.transform(p, direction));
-  }
-
-  check_coordinates(board, x, y, z) {
-    return x >= 0 && y >= 0 && z >= 0 && z < board.length && y < board[z].length && x < board[z][y].length;
-  }
-
-  _place_stone(board, stone_color, shape, start) {
-    const offsetShape = shape.map((p) => [p[0] + start[0], p[1] + start[1], p[2] + start[2]]);
-    let clonedBoard = this._clone_board(board);
-
-    for (let [x, y, z] of offsetShape) {
-      if (!this.check_coordinates(clonedBoard, x, y, z) || clonedBoard[z][y][x] !== this.EMPTY) {
-        return null;
-      }
-      clonedBoard[z][y][x] = stone_color;
-    }
-
-    return clonedBoard;
-  }
-
-  test_board(board, remaining_colors) {
-    const checked = new Set();
-    const max_size = Math.max(...remaining_colors.map((color) => STONE_SIZES[color]));
-    const min_size = Math.min(...remaining_colors.map((color) => STONE_SIZES[color]));
-
-    const test_xy = (x, y, z) => {
-      const key = `${x},${y},${z}`;
-      if (checked.has(key)) return 0;
-      if (!this.check_coordinates(board, x, y, z)) return 0;
-      if (board[z][y][x] !== this.EMPTY) return 0;
-
-      checked.add(key);
-
-      let result = 1;
-      const deltas = [
-        [0, 0, 1],
-        [-1, 0, 1],
-        [-1, -1, 1],
-        [0, -1, 1],
-        [-1, 0, 0],
-        [1, 0, 0],
-        [0, -1, 0],
-        [0, 1, 0],
-        [0, 0, -1],
-        [1, 0, -1],
-        [1, 1, -1],
-        [0, 1, -1],
-      ];
-
-      for (let [dx, dy, dz] of deltas) {
-        result += test_xy(x + dx, y + dy, z + dz);
-      }
-      return result;
-    };
-
-    const sizes = new Set();
-
-    board.forEach((level, z) => {
-      level.forEach((line, y) => {
-        for (let x = 0; x < line.length; x++) {
-          const key = `${x},${y},${z}`;
-          if (checked.has(key)) continue;
-          const t = test_xy(x, y, z);
-          if (t > 0) {
-            if (t < min_size) return false;
-            sizes.add(t);
-          }
-        }
-      });
-    });
-
-    return max_size <= Math.max(...sizes);
-  }
-
-  _clear_last_board(board, color) {
-    if (board === null) {
-      return null;
-    }
-    const marker = STONE_MARKER[color][1];
-    const empty = STONE_MARKER[this.EMPTY][1];
-    const regex = new RegExp(`[^${empty}${marker}\\n ]`, 'g');
-    return board.replace(regex, empty);
-  }
-
-  place_next_stone(board, colors) {
-    const color = colors[0];
-    colors = colors.slice(1);
-    const last_stone = colors.length === 0;
-    let last_clean_board = this._clear_last_board(this.last_board, color);
-
-    board.forEach((level, z) => {
-      level.forEach((line, y) => {
-        for (let x = 0; x < line.length; x++) {
-          for (const shape of this.stone_rotations[color]) {
-            const next_board = this._place_stone(board, color, shape, [x, y, z]);
-
-            if (next_board === null) continue;
-
-            if (last_clean_board !== null) {
-              const next_board_str = this._clear_last_board(this._board_to_str(next_board, 1), color);
-
-              if (next_board_str === last_clean_board) {
-                last_clean_board = null;
-                if (last_stone) {
-                  this.last_board = null;
-                  this.print_board(next_board);
-                  // exit();
-                } else {
-                  this.place_next_stone(next_board, colors);
-                }
-              }
-              continue;
-            }
-
-            if (this.print_all_boards) {
-              // this.print_board(next_board);
-              // exit();
-            }
-
-            // if (!running){
-            //   return;
-            // }
-
-            if (last_stone) {
-              this.save_board(next_board);
-              // print_board(true, true);
-              // exit();
-            } else if (this.test_board(next_board, colors)) {
-              this.place_next_stone(next_board, colors);
-            }
-          }
-        }
-      });
-    });
-  }
-
-  place_stone(color, direction, start) {
-    const shape = this.rotate_stone(STONES[color], direction);
-    // console.log(this.apply_stone(shape, p => [p[0] + start[0], p[1] + start[1], p[2] + start[2]]));
-    const next_board = this._place_stone(this.board, color, shape, start);
-
-    if (next_board !== null) {
-      this.board = next_board;
-    }
-
-    return next_board;
-  }
-
-  solve() {
-    const used_colors = new Set();
-    this.board.forEach((level) => {
-      level.forEach((line) => {
-        line.forEach((color) => {
-          used_colors.add(color);
-        });
-      });
-    });
-
-    const remaining_colors = Object.keys(STONES).filter((c) => !used_colors.has(c));
-
-    this.place_next_stone(this.board, remaining_colors);
-  }
-
-  print_solutions() {
-    this.found_boards.forEach((b) => {
-      console.log(b);
-      console.log();
-    });
-  }
-
-  save_solutions(file_name) {
-    const data = Array.from(this.found_boards)
-      .map((b) => `${b}\n`)
-      .join('\n');
-    // fs.writeFileSync(file_name, data, "utf-8");
-  }
-
-  print_test_stone_directions(color, start) {
-    this.stone_directions[color].forEach((direction) => {
-      const next_board = this.place_stone(color, direction, start);
-      if (next_board !== null) {
-        console.log(direction);
-        this.print_board(next_board);
-      }
-    });
+function* allRotations(p) {
+  let c = p;
+  for (let r = 0; r < 4; r++) {
+    yield c;
+    const ru = rotateUp(c);
+    yield ru;
+    yield rotateRight(ru);
+    c = rotateRight(c);
   }
 }
 
-class IqSolver3d extends IqSolverBase {
-  constructor() {
-    super();
-  }
+function sorted(items, kwargs={}) {
+  const key = kwargs.key === undefined ? x => x : kwargs.key;
+  const reverse = kwargs.reverse === undefined ? false : kwargs.reverse;
+  let sortKeys = items.map((item, pos) => [key(item), pos]);
+  const comparator =
+      Array.isArray(sortKeys[0][0])
+      ? ((left, right) => {
+          for (var n = 0; n < Math.min(left.length, right.length); n++) {
+              const vLeft = left[n], vRight = right[n];
+              const order = vLeft == vRight ? 0 : (vLeft > vRight ? 1 : -1);
+              if (order != 0) return order;
+          }
+          return left.length - right.length;
+      })
+      : ((left, right) => {
+          const vLeft = left[0], vRight = right[0];
+          const order = vLeft == vRight ? 0 : (vLeft > vRight ? 1 : -1);
+          return order;
+      });
+  // sortKeys.sort(comparator);
+  sortKeys = sortKeys.sort(comparator);
+  if (reverse) sortKeys.reverse();
+  return sortKeys.map((order) => items[order[1]]);
+}
 
-  _init_board() {
-    const board = [];
-    for (let h = 0; h < this.BASE_WIDTH; h++) {
-      const row = [];
-      for (let i = 0; i < this.BASE_WIDTH - h; i++) {
-        const column = new Array(this.BASE_WIDTH - h).fill(this.EMPTY);
-        row.push(column);
+function rotations(p) {
+  let a = Array.from(allRotations(p)); // _all_rotations generator fonksiyonunun JavaScript versiyonu
+  
+  a=sorted(a)
+
+  const ret = [a[0]];
+  let c = a[0];
+  for (const r of a.slice(1)) {
+      if (!array_compare(c, r)) {
+          ret.push(r);
+          c = r;
       }
-      board.push(row);
-    }
-    this.board = board; // Assign the generated board to this.board
-    return board;
   }
+  return ret;
+}
+function array_compare(a1, a2) {
+  if(a1.length != a2.length) {
+   return false;
+  }
+  for(var i in a1) {
+   // Don't forget to check for arrays in our arrays.
+   if(a1[i] instanceof Array && a2[i] instanceof Array) {
+    if(!array_compare(a1[i], a2[i])) {
+     return false;
+    }
+   }
+   else if(a1[i] != a2[i]) {
+    return false;
+   }
+  }
+  return true;
+ }
 
-  _init_all_directions() {
-    const directions = [];
-    for (let level of [-1, 0, 1]) {
-      for (let orientation of [0, 1, 2, 3]) {
-        for (let rotation of [1, -1]) {
-          directions.push({ level, orientation, rotation });
+const BASE = 5
+const LIMIT = BASE * 2 - 1
+
+function inLattice(z, x, y) {
+  // check if a point is in the lattice
+  const layers = BASE;  // BASE sabitinin JavaScript'e tanımlanmış olması gerekiyor
+  const minXY = z;
+  const limitXY = LIMIT - z;  // LIMIT sabitinin JavaScript'e tanımlanmış olması gerekiyor
+  const odd = z & 1;
+  return (z >= 0 && z < layers) &&
+    (odd === (x & 1) && odd === (y & 1)) &&
+    (x >= minXY && x <= limitXY) &&
+    (y >= minXY && y <= limitXY);
+}
+
+
+function validPieceOffset(zo, xo, yo, piece) {
+  // check a piece at that place in the lattice is valid
+  const [w, d, h, ps] = piece;
+  for (const [z, x, y] of ps) {
+    if (!inLattice(z + zo, x + xo, y + yo)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function offsetIsUsed(zo, xo, yo, piece, used) {
+  // Check if the offset is already used for the piece
+  const [w, d, h, ps] = piece;
+  for (const [z, x, y] of ps) {
+    if (used[zo + z][xo + x][yo + y]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function use(zo, xo, yo, piece, used) {
+  // Mark the piece's positions as used in the used array
+  const [w, d, h, ps] = piece;
+  for (const [z, x, y] of ps) {
+    used[zo + z][xo + x][yo + y] = true;
+  }
+}
+
+function unuse(zo, xo, yo, piece, used) {
+  // Unmark the piece's positions in the used array
+  const [w, d, h, ps] = piece;
+  for (const [z, x, y] of ps) {
+    used[zo + z][xo + x][yo + y] = false;
+  }
+}
+
+function isUsed(point, used) {
+  // Check if the point is marked as used in the used array
+  const [z, x, y] = point;
+  return used[z][x][y];
+}
+
+const candidates = pieces.map(p => rotations(p));
+let p = pieces[pieces.length - 1];
+candidates[candidates.length - 1] = [p, rotateUp(p), rotateRight(rotateUp(p))];
+
+// All the positions an item can take
+const places = [];
+for (let z = 0; z < BASE; z++) {
+  for (let x = z; x <= LIMIT - z; x += 2) {
+    for (let y = z; y <= LIMIT - z; y += 2) {
+      places.push([z, x, y]);
+    }
+  }
+}
+
+function makeEmptyUsed() {
+  // Create a dense (ish) used matrix
+  return Array.from({ length: BASE }, () =>
+    Array.from({ length: LIMIT }, () =>
+      Array.from({ length: LIMIT }, () => false)
+    )
+  );
+}
+
+function zOrder(solution) {
+  // Make a list of bits of objects in z-order, y-order
+  let out = [];
+  for (const [pc, p, r] of solution) {
+    const [w, d, h, points] = candidates[p][r];
+    const [z, x, y] = places[pc];
+    const [fz, fx, fy] = points[0];
+    const xo = x - fx;
+    const yo = y - fy;
+    const zo = z - fz;
+    for (const [zp, xp, yp] of points) {
+      out.push([zp + zo, yp + yo, xp + xo, p]);
+    }
+  }
+  // out.sort();
+  out = sorted(out);
+  return out;
+}
+
+function formatSolution(solution) {
+  const out = zOrder(solution);
+
+  const layers = [
+    Array.from({ length: 5 }, () => Array.from({ length: 5 }, () => null)),
+    Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => null)),
+    Array.from({ length: 3 }, () => Array.from({ length: 3 }, () => null)),
+    Array.from({ length: 2 }, () => Array.from({ length: 2 }, () => null)),
+    Array.from({ length: 1 }, () => Array.from({ length: 1 }, () => null))
+  ];
+
+  out.forEach(([z, y, x, p]) => {
+    // console.log("Piece index:", p, "x, y, z:", x, y, z);
+    const xAdjusted = x - z;
+    const yAdjusted = y - z;
+    if (0 <= xAdjusted / 2 && xAdjusted / 2 < layers[z].length &&
+      0 <= yAdjusted / 2 && yAdjusted / 2 < layers[z][0].length) {
+      layers[z][Math.floor(xAdjusted / 2)][Math.floor(yAdjusted / 2)] = p;
+    }
+  });
+
+  layers.forEach(layer => {
+    layer.forEach(row => {
+      for (let i = 0; i < row.length; i++) {
+        if (row[i] === null) {
+          row[i] = '.';
         }
       }
-    }
+    });
+  });
 
-    return directions;
+  // console.log(layers);
+  self.postMessage({ type: 'SOLUTION', data: layers });
+  return layers;
+}
+
+function fs(pc, used, placed, result, solutions) {
+  // Find a piece to fill place pc
+  // NOTE: assumes that places[pc] is not used
+  const [z, x, y] = places[pc];
+  for (let p = 0; p < candidates.length; p++) {
+    const piece = candidates[p];
+    if (placed.includes(p)) {
+      continue;
+    }
+    for (let r = 0; r < piece.length; r++) {
+      const rotation = piece[r];
+      const [w, d, h, points] = rotation;
+      const [fz, fx, fy] = points[0];
+      const xo = x - fx;
+      const yo = y - fy;
+      const zo = z - fz;
+      if (validPieceOffset(zo, xo, yo, rotation, used) && !offsetIsUsed(zo, xo, yo, rotation, used)) {
+        result.push([pc, p, r]);
+        if (result.length === candidates.length) {
+          formatSolution([...result]);
+          solutions.push([...result]); // Array kopyalaması için spread operatörü
+          result.pop();
+          return;
+        }
+
+        // if (result.length === 3) { // Daha fazla log çıktısı için bu sayıyı artırabilirsiniz
+        //   console.log(solutions.length, result);
+        // }
+
+        use(zo, xo, yo, rotation, used);
+        placed.push(p);
+        // Bir sonraki kullanılabilir noktayı bul
+        let npc = pc + 1;
+        while (isUsed(places[npc], used)) {
+          npc++;
+        }
+        fs(npc, used, placed, result, solutions);
+        placed.pop();
+        unuse(zo, xo, yo, rotation, used);
+        result.pop();
+      }
+    }
   }
 }
 
 function main() {
-  // console.log("Solver Started");
-  // Usage
-  const solver = new IqSolver3d();
+  console.log("Finding solutions...");
 
-  // solver.place_stone("green", (0, 1, -1), (0, 0, 0))
-  // solver.place_stone("pink", (0, 1, 1), (3, 0, 0))
-  // solver.place_stone("red", (0, 1, -1), (0, 3, 0))
-  // solver.place_stone("lightred", (-1, 1, 1), (0, 4, 0))
-  // solver.place_stone("lightgreen", (0, 0, 1), (1, 2, 1))
+  let used = makeEmptyUsed();
+  let placed = [];
+  let result = [];
+  let solutions = [];
 
-  // solver.load_board();
-  solver.solve();
-  solver.print_solutions();
+  fs(0, used, placed, result, solutions);
 
-  // solver.test();
+  result = solutions[0];
 
-  self.postMessage({ type: 'FINISHED' });
+  // solutions.forEach((solution, i) => {
+  //     console.log(i);
+  //     formatSolution(solution);
+  //     console.log("");
+  // })
+
+  console.log("Found", solutions.length, "solutions.");
+
+
+  //duplicate check
+  let duplicate = false;
+  for (let i = 0; i < solutions.length; i++) {
+    for (let j = i + 1; j < solutions.length; j++) {
+      if (JSON.stringify(solutions[i]) === JSON.stringify(solutions[j])) {
+        duplicate = true;
+        break;
+      }
+    }
+  }
+  if (duplicate) {
+    console.log("Duplicate solution found.");
+  } else {
+    console.log("No duplicate solutions found.");
+  }
+
+  self.postMessage({ type: 'FINISHED' })
 }
+
 
 self.onmessage = function (e) {
   if (e.data.command === 'START') {

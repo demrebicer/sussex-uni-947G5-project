@@ -5,45 +5,45 @@ import { FaCompress, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { Spinner, Button } from '@nextui-org/react';
 
 const pyramidData = [
-  [['b']],
+  [[6]],
   [
-    ['b', 'y'],
-    ['r', 'b'],
+    [0, 7],
+    [3, 6],
   ],
   [
-    ['b', 'o', 'y'],
-    ['o', 'r', 'l'],
-    ['r', 'l', 'b'],
+    [0, 8, 7],
+    [8, 8, 8],
+    [3, 8, 6],
   ],
   [
-    ['B', 'B', 'B', 'y'],
-    ['B', 'o', 'y', 'l'],
-    ['o', 'g', 'l', 'g'],
-    ['r', 'g', 'g', 'g'],
+    [0, 1, 1, 7],
+    [1, 1, 7, 4],
+    [1, 3, 6, 4],
+    [3, 4, 4, 4],
   ],
 
   [
-    ['g', 'g', 'g', 'p', 'y'],
-    ['c', 'g', 'o', 'p', 'p'],
-    ['c', 'c', 'v', 'l', 'p'],
-    ['R', 'R', 'v', 'v', 'p'],
-    ['r', 'R', 'R', 'v', 'v'],
+    [0, 5, 5, 5, 5],
+    [9, 9, 9, 7, 5],
+    [11, 11, 9, 2, 2],
+    [11, 10, 10, 6, 2],
+    [3, 10, 10, 2, 2],
   ],
 ];
 
 const colors = {
-  G: '#2563eb',
-  p: '#db2777',
-  y: '#fde047',
-  c: '#fbbf24',
-  o: '#f472b6',
-  v: '#22d3ee',
-  R: '#7e22ce',
-  r: '#16a34a',
-  B: '#4ade80',
-  b: '#ea580c',
-  l: '#c084fc',
-  g: '#ef4444',
+  0: '#2563eb',
+  1: '#db2777',
+  2: '#fde047',
+  3: '#fbbf24',
+  4: '#f472b6',
+  5: '#22d3ee',
+  6: '#7e22ce',
+  7: '#16a34a',
+  8: '#4ade80',
+  9: '#ea580c',
+  10: '#c084fc',
+  11: '#ef4444',
 };
 
 function Pyramid({ spacingY, pyramidData }) {
@@ -106,10 +106,13 @@ function PyramidSkeleton() {
         const color = colors[letter];
 
         spheres.push(
-          <Sphere 
-          //wireframe
-          
-          position={[x, y, z]} args={[sphereRadius, 16, 16]} key={`${layerIndex}-${rowIndex}-${letterIndex}`}>
+          <Sphere
+            //wireframe
+
+            position={[x, y, z]}
+            args={[sphereRadius, 16, 16]}
+            key={`${layerIndex}-${rowIndex}-${letterIndex}`}
+          >
             <meshStandardMaterial />
           </Sphere>
         );
