@@ -265,6 +265,7 @@ export default function App() {
         ) : null}
 
         {isWorkerTerminated == true ? (
+          <div className="flex justify-center items-center space-x-8">
           <button
             className="w-52 h-12 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
             onClick={() => {
@@ -273,10 +274,11 @@ export default function App() {
           >
             Start Over
           </button>
+          </div>
         ) : null}
 
         {solutionsCount > 0 ? (
-          <span className="d-flex justify-center mt-2 xt-black font-bold">
+          <span className="d-flex justify-center mt-4 xt-black font-bold">
             {currentPage} / {solutionsCount} Solutions
           </span>
         ) : null}
@@ -285,7 +287,7 @@ export default function App() {
           <div className="flex justify-center items-center space-x-8 mt-4">
             <button
               id="prev-solution"
-              className="w-32 h-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+              className=" h-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
               onClick={() => {
                 handlePrev();
               }}
@@ -295,7 +297,7 @@ export default function App() {
 
             <button
               id="next-solution"
-              className="w-32 h-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+              className=" h-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
               onClick={() => {
                 handleNext();
               }}
