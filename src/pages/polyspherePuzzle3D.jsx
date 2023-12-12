@@ -3,6 +3,8 @@ import { Canvas } from '@react-three/fiber';
 import { Sphere, OrbitControls, Sky } from '@react-three/drei';
 import { FaCompress, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { Spinner, Button } from '@nextui-org/react';
+import { FiArrowLeft } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const pyramidData = [
   [[6]],
@@ -123,7 +125,13 @@ function PyramidSkeleton() {
   return <>{spheres}</>;
 }
 
-export default function App() {
+export default function PolyspherePuzzle3D() {
+  const navigate = useNavigate();
+
+  const goBack = () => {
+    navigate('/tasks');
+  };
+
   const [isSpacingY, setIsSpacingY] = useState(false);
   const [spacingY, setSpacingY] = useState(1);
 
@@ -232,6 +240,15 @@ export default function App() {
       <button
         className="absolute top-8 left-8 z-10 p-2 bg-white rounded shadow hover:bg-gray-100 focus:outline-none"
         onClick={() => {
+          goBack();
+        }}
+      >
+        <FiArrowLeft className="text-2xl" />
+      </button>
+
+      <button
+        className="absolute top-24 left-8 z-10 p-2 bg-white rounded shadow hover:bg-gray-100 focus:outline-none"
+        onClick={() => {
           console.log('Tıklandı');
           setIsSpacingY((prev) => !prev);
         }}
@@ -266,14 +283,14 @@ export default function App() {
 
         {isWorkerTerminated == true ? (
           <div className="flex justify-center items-center space-x-8">
-          <button
-            className="w-52 h-12 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
-            onClick={() => {
-              handleResetAndStartOver();
-            }}
-          >
-            Start Over
-          </button>
+            <button
+              className="w-52 h-12 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+              onClick={() => {
+                handleResetAndStartOver();
+              }}
+            >
+              Start Over
+            </button>
           </div>
         ) : null}
 
