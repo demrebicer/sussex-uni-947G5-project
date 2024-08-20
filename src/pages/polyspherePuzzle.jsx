@@ -424,7 +424,7 @@ function PolyspherePuzzle() {
             <div className="flex justify-center items-center space-x-4">
               <button
                 id="start-solution-finder"
-                className="w-52 h-12 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+                className="w-52 h-12 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-2 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
                 onClick={() => {
                   handleStart();
                 }}
@@ -434,7 +434,7 @@ function PolyspherePuzzle() {
 
               <button
                 id="stop-solution-finder"
-                className="w-52 h-12 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
+                className="w-52 h-12 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-2 rounded-lg shadow-lg transform transition-colors duration-300 ease-in-out focus:outline-none focus:shadow-outline"
                 onClick={() => {
                   handleStop();
                 }}
@@ -458,7 +458,7 @@ function PolyspherePuzzle() {
           <span className="text-white font-bold">{solutionsCount} solutions found</span>
         </div>
 
-        <div className="text-xl font-bold p-4 mt-8" style={{ display: solutions.length <= 0 ? 'none' : 'flex' }}>
+        <div className="text-xl text-white font-bold p-4 mt-8" style={{ display: solutions.length <= 0 ? 'none' : 'flex' }}>
           Solutions
         </div>
 

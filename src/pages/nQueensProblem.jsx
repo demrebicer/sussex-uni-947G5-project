@@ -128,8 +128,8 @@ const NQueensProblem = () => {
                 placement="top"
                 showArrow={true}
                 classNames={{
-                  base: 'py-2 px-4 shadow-xl text-black bg-gradient-to-br from-white to-neutral-400 z-30 w-64',
-                  arrow: 'bg-neutral-400 dark:bg-white',
+                  base: 'py-2 px-4 text-black from-white to-neutral-400 z-30 w-64',
+                  arrow: 'bg-neutral-400 bg-white',
                 }}
                 style={{
                   zIndex: 30,
@@ -153,9 +153,9 @@ const NQueensProblem = () => {
           {showTip && (
             <div className=" ml-5 mt-5">
               <div className="flex items-center p-2 rounded-full">
-                <BsArrow90DegDown size={24} className="mr-2" />
+                <BsArrow90DegDown size={24} className="mr-2 text-white" />
                 {/* //Make sure Roboto font */}
-                <p className="text-md mb-4" style={{ fontFamily: 'Roboto' }}>
+                <p className="text-md mb-4" style={{ fontFamily: 'Roboto', color: 'white' }}>
                   You can manually place a queen by clicking on the squares!
                 </p>
               </div>
@@ -179,7 +179,7 @@ const NQueensProblem = () => {
                   opacity: queens.length === 0 || currentSolutionIndex === 0 ? 0.5 : 1,
                 }}
               >
-                <FaArrowLeft size={20} />
+                <FaArrowLeft size={20} className="text-white" />
               </button>
 
               {queens.length !== 0 && (
@@ -198,7 +198,7 @@ const NQueensProblem = () => {
                   opacity: queens.length === 0 || currentSolutionIndex === queens.length - 1 ? 0.5 : 1,
                 }}
               >
-                <FaArrowRight size={20} />
+                <FaArrowRight size={20} className="text-white" />
               </button>
             </div>
           </div>
