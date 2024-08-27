@@ -19,7 +19,6 @@ const MainMenu = () => {
       <div className="z-10 text-center mb-12">
         <h1 className="text-8xl font-bold mb-4 text-white">University of Sussex</h1>
         <h2 className="text-5xl font-semibold text-gray-300">Advanced Computer Engineering</h2>
-        <h3 className="text-4xl text-gray-400">Project Group 8</h3>
       </div>
 
       <Button
