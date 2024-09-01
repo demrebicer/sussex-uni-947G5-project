@@ -4,7 +4,7 @@ This project is created for the Advanced Computer Engineering module at the Univ
 
 ## Demo
 
-[https://demrebicer.github.io/sussex-uni-947G5-project-group-8/](https://demrebicer.github.io/sussex-uni-947G5-project/)
+[https://demrebicer.github.io/sussex-uni-947G5-project/](https://demrebicer.github.io/sussex-uni-947G5-project/)
 
 ## Technologies
 
